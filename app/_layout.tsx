@@ -1,56 +1,56 @@
-import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { useEffect, useState } from 'react'
+import { Stack } from 'expo-router'
+import * as SplashScreen from 'expo-splash-screen'
+import { ActivityIndicator, View, StatusBar } from 'react-native'
+import { supabase } from '@/lib/supabase'
+import { theme } from '@/constants/theme'
 
-import { useColorScheme } from '@/components/useColorScheme';
+SplashScreen.preventAutoHideAsync()
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+export { ErrorBoundary } from 'expo-router'
 
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+export const unstable_settings = { initialRouteName: '(tabs)' }
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        await supabase.auth.signInAnonymously()
+      }
+      setReady(true)
+      SplashScreen.hideAsync()
     }
-  }, [loaded]);
+    init()
+  }, [])
 
-  if (!loaded) {
-    return null;
+  if (!ready) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator color={theme.colors.accent} size="large" />
+      </View>
+    )
   }
 
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+    <>
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: theme.colors.background },
+          headerTintColor: theme.colors.text,
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: theme.colors.background },
+        }}
+      >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="workout/[id]" options={{ title: 'Workout', headerBackTitle: 'Back' }} />
+        <Stack.Screen name="workout/new" options={{ title: 'New Session', presentation: 'modal', headerBackTitle: 'Cancel' }} />
+        <Stack.Screen name="exercise/[id]" options={{ title: 'Exercise', headerBackTitle: 'Back' }} />
+        <Stack.Screen name="stats" options={{ title: 'Stats & Progress', headerBackTitle: 'Back' }} />
       </Stack>
-    </ThemeProvider>
-  );
+    </>
+  )
 }

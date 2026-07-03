@@ -1,18 +1,27 @@
 {
   "expo": {
-    "name": "raise-temp",
-    "slug": "raise-temp",
+    "name": "Raise",
+    "slug": "raise",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "raisetemp",
-    "userInterfaceStyle": "automatic",
+    "scheme": "raise",
+    "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.personal.raise",
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "Raise reads your body weight from Apple Health to track your progress.",
+        "NSHealthUpdateUsageDescription": "Raise does not write health data."
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.access": []
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFF5F8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -26,12 +35,13 @@
     },
     "plugins": [
       "expo-router",
+      "react-native-health",
       [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#FFF5F8"
         }
       ]
     ],
