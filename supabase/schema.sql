@@ -104,3 +104,12 @@ CREATE POLICY "body_weight_all" ON body_weight_logs FOR ALL
 CREATE POLICY "step_logs_all" ON step_logs FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+-- TABLE GRANTS
+-- RLS policies are only evaluated after the table-level grant check passes.
+-- Supabase normally provisions these automatically; run explicitly in case this project didn't get them.
+GRANT SELECT, INSERT ON public.exercises TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.workout_sessions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.workout_sets TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.body_weight_logs TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.step_logs TO authenticated;
