@@ -9,13 +9,14 @@ export function useWeekWorkouts(weekStart: string, weekEnd: string) {
   const fetch = useCallback(async () => {
     const userId = await getUserId()
     if (!userId) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('workout_sessions')
       .select('*, workout_sets(*, exercise:exercises(*))')
       .eq('user_id', userId)
       .gte('date', weekStart)
       .lte('date', weekEnd)
       .order('date')
+    if (error) console.error('useWeekWorkouts:', error.message)
     setSessions((data as WorkoutSessionWithSets[]) ?? [])
     setLoading(false)
   }, [weekStart, weekEnd])
@@ -30,11 +31,12 @@ export function useSession(sessionId: string) {
   const [loading, setLoading] = useState(true)
 
   const fetch = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('workout_sessions')
       .select('*, workout_sets(*, exercise:exercises(*))')
       .eq('id', sessionId)
       .single()
+    if (error) console.error('useSession:', error.message)
     setSession(data as WorkoutSessionWithSets | null)
     setLoading(false)
   }, [sessionId])
@@ -51,12 +53,13 @@ export function useAllSessions() {
   const fetch = useCallback(async () => {
     const userId = await getUserId()
     if (!userId) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('workout_sessions')
       .select('*')
       .eq('user_id', userId)
       .eq('status', 'completed')
       .order('date', { ascending: false })
+    if (error) console.error('useAllSessions:', error.message)
     setSessions(data ?? [])
     setLoading(false)
   }, [])
@@ -73,7 +76,7 @@ export function useExerciseHistory(exerciseId: string) {
   const fetch = useCallback(async () => {
     const userId = await getUserId()
     if (!userId) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('workout_sets')
       .select('*, session:workout_sessions!inner(date, user_id, status)')
       .eq('exercise_id', exerciseId)
@@ -82,6 +85,7 @@ export function useExerciseHistory(exerciseId: string) {
       .eq('is_warmup', false)
       .order('created_at', { ascending: false })
       .limit(100)
+    if (error) console.error('useExerciseHistory:', error.message)
     setSets(data ?? [])
     setLoading(false)
   }, [exerciseId])

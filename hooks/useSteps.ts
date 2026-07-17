@@ -11,12 +11,13 @@ export function useSteps(monthsBack = 6) {
     const userId = await getUserId()
     if (!userId) return
     const since = format(subMonths(new Date(), monthsBack), 'yyyy-MM-dd')
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('step_logs')
       .select('*')
       .eq('user_id', userId)
       .gte('date', since)
       .order('date')
+    if (error) console.error('useSteps:', error.message)
     setLogs(data ?? [])
     setLoading(false)
   }, [monthsBack])
@@ -29,7 +30,8 @@ export function useSteps(monthsBack = 6) {
     const { error } = await supabase
       .from('step_logs')
       .upsert({ user_id: userId, steps, date, source: 'manual' }, { onConflict: 'user_id,date' })
-    if (!error) fetch()
+    if (error) console.error('logSteps:', error.message)
+    else fetch()
   }
 
   return { logs, loading, refetch: fetch, logSteps }

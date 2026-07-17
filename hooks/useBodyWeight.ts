@@ -11,12 +11,13 @@ export function useBodyWeight(monthsBack = 6) {
     const userId = await getUserId()
     if (!userId) return
     const since = format(subMonths(new Date(), monthsBack), 'yyyy-MM-dd')
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('body_weight_logs')
       .select('*')
       .eq('user_id', userId)
       .gte('date', since)
       .order('date')
+    if (error) console.error('useBodyWeight:', error.message)
     setLogs(data ?? [])
     setLoading(false)
   }, [monthsBack])
@@ -29,7 +30,8 @@ export function useBodyWeight(monthsBack = 6) {
     const { error } = await supabase
       .from('body_weight_logs')
       .upsert({ user_id: userId, weight, date, source }, { onConflict: 'user_id,date' })
-    if (!error) fetch()
+    if (error) console.error('logWeight:', error.message)
+    else fetch()
   }
 
   async function syncFromHealthKit() {
