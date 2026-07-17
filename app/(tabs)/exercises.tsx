@@ -61,7 +61,7 @@ export default function ExercisesScreen() {
         placeholderTextColor={theme.colors.textMuted}
       />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterRow}>
+      <View style={styles.filterRow}>
         <TouchableOpacity
           style={[styles.filterChip, !filterGroup && styles.filterChipActive]}
           onPress={() => setFilterGroup(null)}
@@ -77,7 +77,7 @@ export default function ExercisesScreen() {
             <Text style={[styles.filterChipText, filterGroup === g && styles.filterChipTextActive]}>{g}</Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
 
       <ScrollView contentContainerStyle={styles.list}>
         {Object.entries(grouped).map(([group, items]) => (
@@ -148,8 +148,7 @@ const styles = StyleSheet.create({
   addBtn: { paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm, backgroundColor: theme.colors.card, borderRadius: theme.radius.full, borderWidth: 1, borderColor: theme.colors.accent },
   addBtnText: { fontSize: theme.fontSize.sm, color: theme.colors.accent, fontWeight: '600' },
   search: { marginHorizontal: theme.spacing.md, marginBottom: theme.spacing.sm, height: 40, backgroundColor: theme.colors.card, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.md, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border },
-  filterScroll: { flexGrow: 0, marginBottom: theme.spacing.sm },
-  filterRow: { paddingHorizontal: theme.spacing.md, gap: theme.spacing.sm },
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: theme.spacing.md, gap: theme.spacing.sm, marginBottom: theme.spacing.sm },
   filterChip: { paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.xs, borderRadius: theme.radius.full, borderWidth: 1, borderColor: theme.colors.caramel, backgroundColor: theme.colors.card },
   filterChipActive: { borderColor: theme.colors.accent, backgroundColor: `${theme.colors.accent}22` },
   filterChipText: { fontSize: theme.fontSize.sm, color: theme.colors.text },

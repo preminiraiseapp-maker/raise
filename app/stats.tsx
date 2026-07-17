@@ -3,12 +3,16 @@ import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert,
 import { format } from 'date-fns'
 import { theme } from '@/constants/theme'
 import { useBodyWeight } from '@/hooks/useBodyWeight'
+import { useSteps } from '@/hooks/useSteps'
 import { LineChart } from 'react-native-gifted-charts'
 
 export default function StatsScreen() {
   const { logs, loading, logWeight, syncFromHealthKit } = useBodyWeight(6)
   const [newWeight, setNewWeight] = useState('')
   const [syncing, setSyncing] = useState(false)
+
+  const { logs: stepLogs, loading: stepsLoading, logSteps } = useSteps(6)
+  const [newSteps, setNewSteps] = useState('')
 
   async function handleLog() {
     const w = parseFloat(newWeight)
@@ -26,6 +30,16 @@ export default function StatsScreen() {
     setSyncing(false)
   }
 
+  async function handleLogSteps() {
+    const s = parseInt(newSteps, 10)
+    if (!s || s < 0 || s > 100000) {
+      Alert.alert('Invalid steps', 'Enter a step count between 0 and 100,000.')
+      return
+    }
+    await logSteps(s, format(new Date(), 'yyyy-MM-dd'))
+    setNewSteps('')
+  }
+
   const chartData = logs.map((l) => ({
     value: l.weight,
     label: format(new Date(l.date + 'T00:00:00'), 'd/M'),
@@ -37,6 +51,14 @@ export default function StatsScreen() {
   const change = latest && earliest && latest.date !== earliest.date
     ? latest.weight - earliest.weight
     : null
+
+  const stepsChartData = stepLogs.map((l) => ({
+    value: l.steps,
+    label: format(new Date(l.date + 'T00:00:00'), 'd/M'),
+    dataPointColor: theme.colors.accent,
+  }))
+
+  const latestSteps = stepLogs[stepLogs.length - 1]
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -124,6 +146,75 @@ export default function StatsScreen() {
                 <Text style={styles.logDate}>{format(new Date(l.date + 'T00:00:00'), 'EEE d MMM yyyy')}</Text>
                 <View style={styles.logRight}>
                   <Text style={styles.logWeight}>{l.weight} kg</Text>
+                  {l.source === 'healthkit' && <Text style={styles.logSource}>Health</Text>}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Daily Steps</Text>
+
+        {latestSteps && (
+          <View style={styles.currentRow}>
+            <View>
+              <Text style={styles.currentLabel}>Today's latest</Text>
+              <Text style={styles.currentValue}>{latestSteps.steps.toLocaleString()}</Text>
+              <Text style={styles.currentDate}>{format(new Date(latestSteps.date + 'T00:00:00'), 'd MMM yyyy')}</Text>
+            </View>
+          </View>
+        )}
+
+        {stepsChartData.length >= 2 && (
+          <View style={styles.chartCard}>
+            <LineChart
+              data={stepsChartData}
+              color={theme.colors.accent}
+              thickness={2}
+              curved
+              hideDataPoints={stepsChartData.length > 15}
+              dataPointsColor={theme.colors.accent}
+              xAxisColor={theme.colors.border}
+              yAxisColor={theme.colors.border}
+              yAxisTextStyle={{ color: theme.colors.textMuted, fontSize: 10 }}
+              xAxisLabelTextStyle={{ color: theme.colors.textMuted, fontSize: 9 }}
+              rulesColor={theme.colors.border}
+              backgroundColor={theme.colors.card}
+              height={140}
+              width={280}
+              startFillColor={`${theme.colors.accent}44`}
+              endFillColor={`${theme.colors.accent}00`}
+              areaChart
+            />
+          </View>
+        )}
+
+        <View style={styles.logRow}>
+          <TextInput
+            style={styles.weightInput}
+            value={newSteps}
+            onChangeText={setNewSteps}
+            placeholder="Enter steps"
+            placeholderTextColor={theme.colors.textMuted}
+            keyboardType="number-pad"
+          />
+          <TouchableOpacity style={styles.logBtn} onPress={handleLogSteps}>
+            <Text style={styles.logBtnText}>Log</Text>
+          </TouchableOpacity>
+        </View>
+
+        {stepsLoading && <ActivityIndicator color={theme.colors.accent} style={{ marginTop: theme.spacing.md }} />}
+
+        {stepLogs.length > 0 && (
+          <View style={styles.logList}>
+            <Text style={styles.logListTitle}>Recent entries</Text>
+            {[...stepLogs].reverse().slice(0, 10).map((l) => (
+              <View key={l.id} style={styles.logItem}>
+                <Text style={styles.logDate}>{format(new Date(l.date + 'T00:00:00'), 'EEE d MMM yyyy')}</Text>
+                <View style={styles.logRight}>
+                  <Text style={styles.logWeight}>{l.steps.toLocaleString()}</Text>
                   {l.source === 'healthkit' && <Text style={styles.logSource}>Health</Text>}
                 </View>
               </View>

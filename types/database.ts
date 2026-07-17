@@ -50,3 +50,12 @@ export interface BodyWeightLog {
   source: 'manual' | 'healthkit'
   created_at: string
 }
+
+export interface StepLog {
+  id: string
+  user_id: string
+  steps: number
+  date: string
+  source: 'manual' | 'healthkit'
+  created_at: string
+}

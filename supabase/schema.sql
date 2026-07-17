@@ -46,17 +46,30 @@ CREATE TABLE IF NOT EXISTS body_weight_logs (
   UNIQUE(user_id, date)
 );
 
+-- STEP LOGS TABLE
+CREATE TABLE IF NOT EXISTS step_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  steps INTEGER NOT NULL,
+  date DATE NOT NULL,
+  source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('manual','healthkit')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, date)
+);
+
 -- INDEXES
 CREATE INDEX IF NOT EXISTS idx_workout_sessions_user_date ON workout_sessions(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_workout_sets_session ON workout_sets(session_id);
 CREATE INDEX IF NOT EXISTS idx_workout_sets_exercise ON workout_sets(exercise_id);
 CREATE INDEX IF NOT EXISTS idx_body_weight_logs_user_date ON body_weight_logs(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_step_logs_user_date ON step_logs(user_id, date);
 
 -- ROW LEVEL SECURITY
 ALTER TABLE exercises ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workout_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workout_sets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE body_weight_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE step_logs ENABLE ROW LEVEL SECURITY;
 
 -- Exercises: anyone can read, any authenticated user can insert custom exercises
 CREATE POLICY "exercises_read" ON exercises FOR SELECT USING (true);
@@ -84,5 +97,10 @@ CREATE POLICY "sets_all" ON workout_sets FOR ALL
 
 -- Body weight: users own their data
 CREATE POLICY "body_weight_all" ON body_weight_logs FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Steps: users own their data
+CREATE POLICY "step_logs_all" ON step_logs FOR ALL
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
