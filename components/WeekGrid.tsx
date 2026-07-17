@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { format, isToday, isBefore } from 'date-fns'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+import { isToday, isBefore } from 'date-fns'
 import { theme } from '@/constants/theme'
 import type { WeekDay } from '@/hooks/useWeek'
 import type { WorkoutSessionWithSets } from '@/types/database'
@@ -14,7 +14,11 @@ export default function WeekGrid({ days, sessions, onDayPress }: Props) {
   const sessionByDate = Object.fromEntries(sessions.map((s) => [s.date, s]))
 
   return (
-    <View style={styles.grid}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.grid}
+    >
       {days.map((day) => {
         const session = sessionByDate[day.dateStr] ?? null
         const past = isBefore(day.date, new Date()) && !isToday(day.date)
@@ -25,119 +29,91 @@ export default function WeekGrid({ days, sessions, onDayPress }: Props) {
         let cardStyle = [styles.card]
         if (today) cardStyle.push(styles.cardToday as any)
         if (completed) cardStyle.push(styles.cardCompleted as any)
-        if (planned) cardStyle.push(styles.cardPlanned as any)
 
         return (
           <TouchableOpacity
             key={day.dateStr}
             style={cardStyle}
             onPress={() => onDayPress(day.dateStr, session)}
-            activeOpacity={0.7}
+            activeOpacity={0.75}
           >
             <Text style={[styles.dayName, today && styles.textToday]}>{day.dayName}</Text>
             <Text style={[styles.dayNum, today && styles.textToday]}>{day.dayNum}</Text>
-            {completed && (
-              <>
-                <Text style={styles.sessionName} numberOfLines={1}>{session.name}</Text>
-                <Text style={styles.sessionMeta}>
-                  {session.workout_sets?.filter((s) => !s.is_warmup).length ?? 0} sets
-                </Text>
-                <View style={styles.completedDot} />
-              </>
-            )}
-            {planned && (
-              <>
-                <Text style={styles.sessionNamePlanned} numberOfLines={1}>{session.name}</Text>
-                <Text style={styles.sessionMeta}>Planned</Text>
-              </>
-            )}
-            {!session && (
-              <Text style={[styles.plusIcon, past && styles.pastPlus]}>+</Text>
-            )}
+
+            <View style={styles.indicatorWrap}>
+              {completed && <View style={styles.dotCompleted} />}
+              {planned && <View style={styles.dotPlanned} />}
+              {!session && <View style={[styles.dotEmpty, past && styles.dotPast]} />}
+            </View>
           </TouchableOpacity>
         )
       })}
-    </View>
+    </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
   },
   card: {
-    width: '13%',
-    flexGrow: 1,
-    minHeight: 90,
+    width: 56,
+    minHeight: 84,
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
     padding: theme.spacing.sm,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    justifyContent: 'center',
+    gap: 4,
+    ...theme.shadow.soft,
   },
   cardToday: {
-    borderColor: theme.colors.accent,
-    borderWidth: 1.5,
+    backgroundColor: theme.colors.accentSoft,
   },
   cardCompleted: {
-    backgroundColor: theme.colors.card,
-    borderColor: theme.colors.success,
-  },
-  cardPlanned: {
-    borderColor: theme.colors.secondary,
-    borderStyle: 'dashed',
+    backgroundColor: theme.colors.secondarySoft,
   },
   dayName: {
     fontSize: theme.fontSize.xs,
     color: theme.colors.textMuted,
-    fontWeight: '500',
+    fontFamily: theme.fonts.bodySemiBold,
   },
   dayNum: {
     fontSize: theme.fontSize.lg,
     color: theme.colors.text,
-    fontWeight: '700',
-    marginBottom: 2,
+    fontFamily: theme.fonts.bodyBold,
   },
   textToday: {
-    color: theme.colors.accent,
-  },
-  sessionName: {
-    fontSize: 9,
     color: theme.colors.text,
-    fontWeight: '600',
-    textAlign: 'center',
+  },
+  indicatorWrap: {
+    height: 8,
+    justifyContent: 'center',
     marginTop: 2,
   },
-  sessionNamePlanned: {
-    fontSize: 9,
-    color: theme.colors.secondary,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginTop: 2,
+  dotCompleted: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.colors.secondary,
   },
-  sessionMeta: {
-    fontSize: 8,
-    color: theme.colors.textMuted,
-    marginTop: 1,
+  dotPlanned: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: theme.colors.accent,
   },
-  completedDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: theme.colors.success,
-    marginTop: 4,
+  dotEmpty: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: theme.colors.border,
   },
-  plusIcon: {
-    fontSize: 22,
-    color: theme.colors.textMuted,
-    marginTop: 8,
-  },
-  pastPlus: {
-    opacity: 0.3,
+  dotPast: {
+    opacity: 0.5,
   },
 })

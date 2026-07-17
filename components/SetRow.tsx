@@ -24,8 +24,12 @@ export default function SetRow({ set, onToggleComplete, onChangeReps, onChangeWe
 
   return (
     <View style={[styles.row, set.is_warmup && styles.rowWarmup, set.completed && styles.rowCompleted]}>
-      <TouchableOpacity onPress={onToggleWarmup} style={styles.warmupBtn} disabled={readonly}>
-        <Text style={[styles.warmupText, set.is_warmup && styles.warmupActive]}>W</Text>
+      <TouchableOpacity
+        onPress={onToggleWarmup}
+        style={[styles.warmupBtn, set.is_warmup && styles.warmupBtnActive]}
+        disabled={readonly}
+      >
+        <Text style={[styles.warmupText, set.is_warmup && styles.warmupTextActive]}>W</Text>
       </TouchableOpacity>
 
       <Text style={styles.setNum}>{set.set_number}</Text>
@@ -38,7 +42,7 @@ export default function SetRow({ set, onToggleComplete, onChangeReps, onChangeWe
           value={set.tempReps ?? String(reps ?? '')}
           onChangeText={onChangeReps}
           keyboardType="number-pad"
-          placeholder="reps"
+          placeholder="—"
           placeholderTextColor={theme.colors.textMuted}
           selectTextOnFocus
         />
@@ -54,13 +58,11 @@ export default function SetRow({ set, onToggleComplete, onChangeReps, onChangeWe
           value={set.tempWeight ?? String(weight ?? '')}
           onChangeText={onChangeWeight}
           keyboardType="decimal-pad"
-          placeholder="kg"
+          placeholder="—"
           placeholderTextColor={theme.colors.textMuted}
           selectTextOnFocus
         />
       )}
-
-      <Text style={styles.unit}>kg</Text>
 
       <Text style={styles.oneRM}>
         {format1RM(
@@ -72,7 +74,7 @@ export default function SetRow({ set, onToggleComplete, onChangeReps, onChangeWe
       {!readonly && (
         <TouchableOpacity onPress={handleComplete} style={[styles.checkBtn, set.completed && styles.checkBtnDone]}>
           <Text style={[styles.checkText, set.completed && styles.checkTextDone]}>
-            {set.completed ? '✓' : '○'}
+            {set.completed ? '✓' : ''}
           </Text>
         </TouchableOpacity>
       )}
@@ -87,52 +89,53 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.sm,
     borderRadius: theme.radius.sm,
-    gap: theme.spacing.xs,
-    marginBottom: 2,
+    gap: theme.spacing.sm,
+    marginBottom: 4,
   },
-  rowWarmup: { opacity: 0.6 },
-  rowCompleted: { backgroundColor: `${theme.colors.success}18` },
+  rowWarmup: { backgroundColor: `${theme.colors.caramel}17` },
+  rowCompleted: { backgroundColor: `${theme.colors.secondary}1c` },
   warmupBtn: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: theme.colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  warmupText: { fontSize: 10, color: theme.colors.textMuted, fontWeight: '700' },
-  warmupActive: { color: theme.colors.caramel },
+  warmupBtnActive: { backgroundColor: theme.colors.caramel },
+  warmupText: { fontSize: 11, fontFamily: theme.fonts.bodyBold, color: theme.colors.textMuted },
+  warmupTextActive: { color: '#FFFFFF' },
   setNum: {
-    width: 20,
+    width: 18,
     fontSize: theme.fontSize.sm,
+    fontFamily: theme.fonts.bodyMedium,
     color: theme.colors.textMuted,
     textAlign: 'center',
   },
   input: {
-    width: 46,
-    height: 36,
-    backgroundColor: theme.colors.card,
+    width: 50,
+    height: 38,
+    backgroundColor: theme.colors.background,
     borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
     color: theme.colors.text,
     fontSize: theme.fontSize.md,
+    fontFamily: theme.fonts.bodySemiBold,
     textAlign: 'center',
     paddingHorizontal: 4,
   },
   valueText: {
-    width: 46,
+    width: 50,
     fontSize: theme.fontSize.md,
+    fontFamily: theme.fonts.bodySemiBold,
     color: theme.colors.text,
     textAlign: 'center',
   },
-  cross: { fontSize: theme.fontSize.sm, color: theme.colors.textMuted },
-  unit: { fontSize: theme.fontSize.xs, color: theme.colors.textMuted },
+  cross: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.body, color: theme.colors.textMuted },
   oneRM: {
     flex: 1,
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.caramel,
+    fontSize: theme.fontSize.sm,
+    fontFamily: theme.fonts.bodyBold,
+    color: theme.colors.accent,
     textAlign: 'right',
   },
   checkBtn: {
@@ -141,10 +144,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     borderColor: theme.colors.border,
+    backgroundColor: theme.colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkBtnDone: { borderColor: theme.colors.success, backgroundColor: `${theme.colors.success}22` },
-  checkText: { fontSize: 16, color: theme.colors.textMuted },
-  checkTextDone: { color: theme.colors.success, fontWeight: '700' },
+  checkBtnDone: { borderColor: theme.colors.secondary, backgroundColor: theme.colors.secondary },
+  checkText: { fontSize: 15, fontFamily: theme.fonts.bodyBold, color: theme.colors.textMuted },
+  checkTextDone: { color: '#FFFFFF' },
 })

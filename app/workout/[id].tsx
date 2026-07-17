@@ -182,7 +182,10 @@ export default function WorkoutScreen() {
           <Text style={styles.sessionName}>{session.name}</Text>
           <Text style={styles.sessionDate}>{dateLabel}</Text>
           {totalSets > 0 && (
-            <Text style={styles.progress}>{completedSets} / {totalSets} working sets done</Text>
+            <View style={styles.progressPill}>
+              <View style={styles.progressDot} />
+              <Text style={styles.progress}>{completedSets} / {totalSets} working sets done</Text>
+            </View>
           )}
         </View>
 
@@ -257,23 +260,36 @@ export default function WorkoutScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' },
-  content: { paddingBottom: 100 },
-  sessionHeader: { paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.lg },
-  sessionName: { fontSize: theme.fontSize.xxl, fontWeight: '800', color: theme.colors.text },
-  sessionDate: { fontSize: theme.fontSize.sm, color: theme.colors.textMuted, marginTop: 4 },
-  progress: { fontSize: theme.fontSize.sm, color: theme.colors.accent, marginTop: 8, fontWeight: '600' },
-  addExerciseBtn: { marginHorizontal: theme.spacing.md, marginTop: theme.spacing.md, padding: theme.spacing.md, backgroundColor: theme.colors.card, borderRadius: theme.radius.md, alignItems: 'center', borderWidth: 1, borderColor: theme.colors.border, borderStyle: 'dashed' },
-  addExerciseBtnText: { color: theme.colors.accent, fontSize: theme.fontSize.md, fontWeight: '600' },
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: theme.spacing.md, backgroundColor: theme.colors.background, borderTopWidth: 1, borderTopColor: theme.colors.border },
-  completeBtn: { backgroundColor: theme.colors.accent, borderRadius: theme.radius.md, height: 52, alignItems: 'center', justifyContent: 'center' },
+  content: { paddingBottom: 120 },
+  sessionHeader: { paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.lg, paddingBottom: theme.spacing.md },
+  sessionName: { fontSize: theme.fontSize.xxl, fontFamily: theme.fonts.display, color: theme.colors.text },
+  sessionDate: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.body, color: theme.colors.textMuted, marginTop: 4 },
+  progressPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: theme.colors.cardWarm,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 6,
+    marginTop: theme.spacing.sm,
+    ...theme.shadow.soft,
+  },
+  progressDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.secondary },
+  progress: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.text },
+  addExerciseBtn: { marginHorizontal: theme.spacing.md, marginTop: theme.spacing.md, padding: theme.spacing.md, backgroundColor: theme.colors.cardWarm, borderRadius: theme.radius.md, alignItems: 'center', borderWidth: 1, borderColor: theme.colors.border, borderStyle: 'dashed' },
+  addExerciseBtnText: { color: theme.colors.accent, fontSize: theme.fontSize.md, fontFamily: theme.fonts.bodySemiBold },
+  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: theme.spacing.md, backgroundColor: theme.colors.background },
+  completeBtn: { backgroundColor: theme.colors.accent, borderRadius: theme.radius.md, height: 56, alignItems: 'center', justifyContent: 'center', ...theme.shadow.card },
   completeBtnDisabled: { opacity: 0.5 },
-  completeBtnText: { fontSize: theme.fontSize.lg, fontWeight: '700', color: theme.colors.background },
-  reopenBtn: { borderRadius: theme.radius.md, height: 52, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: theme.colors.caramel },
-  reopenBtnText: { fontSize: theme.fontSize.lg, fontWeight: '600', color: theme.colors.caramel },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  exercisePickerCard: { backgroundColor: theme.colors.card, borderTopLeftRadius: theme.radius.lg, borderTopRightRadius: theme.radius.lg, padding: theme.spacing.lg, paddingBottom: 40 },
-  pickerTitle: { fontSize: theme.fontSize.xl, fontWeight: '700', color: theme.colors.text, marginBottom: theme.spacing.md },
+  completeBtnText: { fontSize: theme.fontSize.lg, fontFamily: theme.fonts.bodyBold, color: '#FFFFFF' },
+  reopenBtn: { borderRadius: theme.radius.md, height: 56, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.cardWarm, ...theme.shadow.soft },
+  reopenBtnText: { fontSize: theme.fontSize.lg, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.caramel },
+  backdrop: { flex: 1, backgroundColor: 'rgba(56,44,34,0.55)', justifyContent: 'flex-end' },
+  exercisePickerCard: { backgroundColor: theme.colors.card, borderTopLeftRadius: theme.radius.lg, borderTopRightRadius: theme.radius.lg, padding: theme.spacing.lg, paddingBottom: 40, ...theme.shadow.floating },
+  pickerTitle: { fontSize: theme.fontSize.xl, fontFamily: theme.fonts.display, color: theme.colors.text, marginBottom: theme.spacing.md },
   pickerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: theme.spacing.md, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
-  pickerName: { fontSize: theme.fontSize.md, color: theme.colors.text },
-  pickerGroup: { fontSize: theme.fontSize.sm, color: theme.colors.accent },
+  pickerName: { fontSize: theme.fontSize.md, fontFamily: theme.fonts.bodyMedium, color: theme.colors.text },
+  pickerGroup: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.accent },
 })

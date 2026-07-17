@@ -32,19 +32,20 @@ export default function ExerciseCard({
           {muscleGroup && <Text style={styles.muscleTag}>{muscleGroup}</Text>}
         </View>
         <Text style={styles.progress}>
-          {completedCount}/{sets.length} {collapsed ? '▶' : '▼'}
+          {completedCount}/{sets.length} {collapsed ? '⌄' : '⌃'}
         </Text>
       </TouchableOpacity>
 
       {!collapsed && (
         <>
           <View style={styles.setHeader}>
-            <Text style={[styles.colLabel, { width: 22 }]}>W</Text>
-            <Text style={[styles.colLabel, { width: 20 }]}>#</Text>
-            <Text style={[styles.colLabel, { width: 46 }]}>Reps</Text>
-            <Text style={[styles.colLabel, { width: 12 }]}> </Text>
-            <Text style={[styles.colLabel, { width: 46 }]}>kg</Text>
+            <Text style={[styles.colLabel, { width: 26 }]}>Warm</Text>
+            <Text style={[styles.colLabel, { width: 18 }]}>#</Text>
+            <Text style={[styles.colLabel, { width: 50 }]}>Reps</Text>
+            <Text style={[styles.colLabel, { width: 14 }]}> </Text>
+            <Text style={[styles.colLabel, { width: 50 }]}>kg</Text>
             <Text style={[styles.colLabel, { flex: 1 }]}>1RM</Text>
+            <Text style={[styles.colLabel, { width: 32 }]}> </Text>
           </View>
 
           {sets.map((set) => (
@@ -76,9 +77,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
     marginHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
     overflow: 'hidden',
+    ...theme.shadow.card,
   },
   header: {
     flexDirection: 'row',
@@ -90,11 +90,12 @@ const styles = StyleSheet.create({
   headerLeft: { flex: 1 },
   exerciseName: {
     fontSize: theme.fontSize.lg,
-    fontWeight: '700',
+    fontFamily: theme.fonts.bodyBold,
     color: theme.colors.text,
   },
   muscleTag: {
     fontSize: theme.fontSize.xs,
+    fontFamily: theme.fonts.bodySemiBold,
     color: theme.colors.accent,
     marginTop: 2,
     textTransform: 'uppercase',
@@ -102,28 +103,30 @@ const styles = StyleSheet.create({
   },
   progress: {
     fontSize: theme.fontSize.sm,
+    fontFamily: theme.fonts.bodyMedium,
     color: theme.colors.textMuted,
   },
   setHeader: {
     flexDirection: 'row',
     paddingHorizontal: theme.spacing.sm,
-    paddingBottom: 4,
-    gap: theme.spacing.xs,
+    paddingBottom: 6,
+    gap: theme.spacing.sm,
   },
   colLabel: {
     fontSize: theme.fontSize.xs,
+    fontFamily: theme.fonts.bodySemiBold,
     color: theme.colors.textMuted,
     textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   addSetBtn: {
-    padding: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
   },
   addSetText: {
     fontSize: theme.fontSize.sm,
+    fontFamily: theme.fonts.bodySemiBold,
     color: theme.colors.accent,
-    fontWeight: '600',
   },
 })

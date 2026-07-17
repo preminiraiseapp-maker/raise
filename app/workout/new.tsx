@@ -85,14 +85,14 @@ export default function NewWorkoutScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background, padding: theme.spacing.xl },
-  dateLabel: { fontSize: theme.fontSize.sm, color: theme.colors.accent, marginBottom: theme.spacing.xs, fontWeight: '600' },
-  heading: { fontSize: theme.fontSize.xxxl, fontWeight: '800', color: theme.colors.text, marginBottom: theme.spacing.xl },
-  input: { height: 52, backgroundColor: theme.colors.card, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.md, color: theme.colors.text, fontSize: theme.fontSize.xl, borderWidth: 1, borderColor: theme.colors.border, marginBottom: theme.spacing.lg },
-  quickLabel: { fontSize: theme.fontSize.sm, color: theme.colors.textMuted, marginBottom: theme.spacing.sm, fontWeight: '600' },
+  dateLabel: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.accent, marginBottom: theme.spacing.xs },
+  heading: { fontSize: theme.fontSize.xxxl, fontFamily: theme.fonts.display, color: theme.colors.text, marginBottom: theme.spacing.xl },
+  input: { height: 52, backgroundColor: theme.colors.card, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.md, color: theme.colors.text, fontSize: theme.fontSize.xl, fontFamily: theme.fonts.body, marginBottom: theme.spacing.lg, ...theme.shadow.soft },
+  quickLabel: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.textMuted, marginBottom: theme.spacing.sm },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm, marginBottom: theme.spacing.xl },
-  quickChip: { paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm, backgroundColor: theme.colors.card, borderRadius: theme.radius.full, borderWidth: 1, borderColor: theme.colors.border },
-  quickChipText: { fontSize: theme.fontSize.sm, color: theme.colors.text },
-  createBtn: { backgroundColor: theme.colors.accent, borderRadius: theme.radius.md, height: 52, alignItems: 'center', justifyContent: 'center', marginTop: 'auto' },
+  quickChip: { paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm, backgroundColor: theme.colors.card, borderRadius: theme.radius.full, ...theme.shadow.soft },
+  quickChipText: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodyMedium, color: theme.colors.text },
+  createBtn: { backgroundColor: theme.colors.accent, borderRadius: theme.radius.md, height: 52, alignItems: 'center', justifyContent: 'center', marginTop: 'auto', ...theme.shadow.card },
   createBtnDisabled: { opacity: 0.4 },
-  createBtnText: { fontSize: theme.fontSize.lg, fontWeight: '700', color: theme.colors.background },
+  createBtnText: { fontSize: theme.fontSize.lg, fontFamily: theme.fonts.bodyBold, color: theme.colors.background },
 })

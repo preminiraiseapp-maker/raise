@@ -25,6 +25,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'This Week',
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <SymbolView name={{ ios: 'house.fill', android: 'home', web: 'home' }} tintColor={color} size={22} />
           ),

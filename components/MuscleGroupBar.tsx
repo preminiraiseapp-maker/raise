@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { theme } from '@/constants/theme'
 import type { WorkoutSessionWithSets } from '@/types/database'
 import type { MuscleGroup } from '@/types/database'
@@ -35,13 +36,14 @@ export default function MuscleGroupBar({ sessions }: Props) {
           <View key={group} style={styles.row}>
             <Text style={[styles.label, isEmpty && styles.labelEmpty]}>{group}</Text>
             <View style={styles.barBg}>
-              <View
-                style={[
-                  styles.barFill,
-                  { width: `${pct * 100}%` },
-                  isEmpty && styles.barEmpty,
-                ]}
-              />
+              {!isEmpty && (
+                <LinearGradient
+                  colors={[theme.colors.secondary, theme.colors.accent]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.barFill, { width: `${Math.max(pct * 100, 6)}%` }]}
+                />
+              )}
             </View>
             <Text style={[styles.count, isEmpty && styles.labelEmpty]}>
               {count > 0 ? `${count}` : '—'}
@@ -59,13 +61,12 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.lg,
-    padding: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    padding: theme.spacing.lg,
+    ...theme.shadow.card,
   },
   heading: {
     fontSize: theme.fontSize.md,
-    fontWeight: '700',
+    fontFamily: theme.fonts.bodyBold,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
   },
@@ -76,8 +77,9 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   label: {
-    width: 75,
+    width: 78,
     fontSize: theme.fontSize.sm,
+    fontFamily: theme.fonts.bodyMedium,
     color: theme.colors.text,
   },
   labelEmpty: {
@@ -85,24 +87,20 @@ const styles = StyleSheet.create({
   },
   barBg: {
     flex: 1,
-    height: 8,
-    backgroundColor: theme.colors.border,
+    height: 10,
+    backgroundColor: theme.colors.background,
     borderRadius: theme.radius.full,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.full,
-    minWidth: 4,
-  },
-  barEmpty: {
-    backgroundColor: theme.colors.danger,
-    width: 4,
+    minWidth: 8,
   },
   count: {
-    width: 20,
+    width: 22,
     fontSize: theme.fontSize.sm,
+    fontFamily: theme.fonts.bodySemiBold,
     color: theme.colors.text,
     textAlign: 'right',
   },
