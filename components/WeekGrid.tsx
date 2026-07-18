@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { isToday, isBefore } from 'date-fns'
 import { theme } from '@/constants/theme'
 import type { WeekDay } from '@/hooks/useWeek'
@@ -14,11 +14,7 @@ export default function WeekGrid({ days, sessions, onDayPress }: Props) {
   const sessionByDate = Object.fromEntries(sessions.map((s) => [s.date, s]))
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.grid}
-    >
+    <View style={styles.grid}>
       {days.map((day) => {
         const session = sessionByDate[day.dateStr] ?? null
         const past = isBefore(day.date, new Date()) && !isToday(day.date)
@@ -48,23 +44,24 @@ export default function WeekGrid({ days, sessions, onDayPress }: Props) {
           </TouchableOpacity>
         )
       })}
-    </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
   },
   card: {
-    width: 56,
-    minHeight: 84,
+    flex: 1,
+    minHeight: 72,
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
-    padding: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: 2,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,

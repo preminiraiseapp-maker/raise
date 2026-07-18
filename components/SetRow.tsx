@@ -10,10 +10,11 @@ type Props = {
   onChangeReps: (val: string) => void
   onChangeWeight: (val: string) => void
   onToggleWarmup: () => void
+  onDelete: () => void
   readonly?: boolean
 }
 
-export default function SetRow({ set, onToggleComplete, onChangeReps, onChangeWeight, onToggleWarmup, readonly }: Props) {
+export default function SetRow({ set, onToggleComplete, onChangeReps, onChangeWeight, onToggleWarmup, onDelete, readonly }: Props) {
   const reps = set.actual_reps ?? set.planned_reps
   const weight = set.actual_weight ?? set.planned_weight
 
@@ -76,6 +77,12 @@ export default function SetRow({ set, onToggleComplete, onChangeReps, onChangeWe
           <Text style={[styles.checkText, set.completed && styles.checkTextDone]}>
             {set.completed ? '✓' : ''}
           </Text>
+        </TouchableOpacity>
+      )}
+
+      {!readonly && (
+        <TouchableOpacity onPress={onDelete} style={styles.deleteBtn} hitSlop={8}>
+          <Text style={styles.deleteText}>✕</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -151,4 +158,11 @@ const styles = StyleSheet.create({
   checkBtnDone: { borderColor: theme.colors.secondary, backgroundColor: theme.colors.secondary },
   checkText: { fontSize: 15, fontFamily: theme.fonts.bodyBold, color: theme.colors.textMuted },
   checkTextDone: { color: '#FFFFFF' },
+  deleteBtn: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteText: { fontSize: 13, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.textMuted },
 })

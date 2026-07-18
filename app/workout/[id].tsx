@@ -128,6 +128,32 @@ export default function WorkoutScreen() {
     await supabase.from('workout_sets').update({ is_warmup: newWarmup }).eq('id', setId)
   }
 
+  async function deleteSet(setId: string) {
+    setLocalSets((prev) => prev.filter((s) => s.id !== setId))
+    const { error } = await supabase.from('workout_sets').delete().eq('id', setId)
+    if (error) console.error('deleteSet:', error.message)
+  }
+
+  async function deleteExercise(exerciseId: string) {
+    setLocalSets((prev) => prev.filter((s) => s.exercise_id !== exerciseId))
+    const { error } = await supabase.from('workout_sets').delete().eq('session_id', session.id).eq('exercise_id', exerciseId)
+    if (error) console.error('deleteExercise:', error.message)
+  }
+
+  function confirmDeleteExercise(exerciseId: string, exerciseName: string) {
+    const msg = `Remove ${exerciseName} and all its sets from this workout?`
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(msg)) deleteExercise(exerciseId)
+      return
+    }
+
+    Alert.alert('Remove Exercise?', msg, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: () => deleteExercise(exerciseId) },
+    ])
+  }
+
   async function doComplete() {
     setSaving(true)
     await Promise.all(
@@ -167,6 +193,29 @@ export default function WorkoutScreen() {
     refetch()
   }
 
+  async function deleteSession() {
+    const { error } = await supabase.from('workout_sessions').delete().eq('id', session.id)
+    if (error) {
+      console.error('deleteSession:', error.message)
+      return
+    }
+    router.replace('/(tabs)')
+  }
+
+  function confirmDeleteSession() {
+    const msg = `Delete "${session.name}"? This removes the whole workout and can't be undone.`
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(msg)) deleteSession()
+      return
+    }
+
+    Alert.alert('Delete Workout?', msg, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: deleteSession },
+    ])
+  }
+
   const dateLabel = format(new Date(session.date + 'T00:00:00'), 'EEE d MMM yyyy')
   const completedSets = localSets.filter((s) => s.completed && !s.is_warmup).length
   const totalSets = localSets.filter((s) => !s.is_warmup).length
@@ -179,8 +228,15 @@ export default function WorkoutScreen() {
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.sessionHeader}>
-          <Text style={styles.sessionName}>{session.name}</Text>
-          <Text style={styles.sessionDate}>{dateLabel}</Text>
+          <View style={styles.sessionHeaderTop}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.sessionName}>{session.name}</Text>
+              <Text style={styles.sessionDate}>{dateLabel}</Text>
+            </View>
+            <TouchableOpacity onPress={confirmDeleteSession} style={styles.deleteSessionBtn} hitSlop={8}>
+              <Text style={styles.deleteSessionText}>🗑</Text>
+            </TouchableOpacity>
+          </View>
           {totalSets > 0 && (
             <View style={styles.progressPill}>
               <View style={styles.progressDot} />
@@ -203,6 +259,8 @@ export default function WorkoutScreen() {
               onChangeWeight={(setId, val) => updateSet(setId, { tempWeight: val })}
               onToggleWarmup={toggleWarmup}
               onAddSet={() => addSet(exerciseId)}
+              onDeleteSet={deleteSet}
+              onDeleteExercise={() => confirmDeleteExercise(exerciseId, ex?.name ?? 'this exercise')}
               readonly={false}
             />
           )
@@ -262,8 +320,19 @@ const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' },
   content: { paddingBottom: 120 },
   sessionHeader: { paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.lg, paddingBottom: theme.spacing.md },
+  sessionHeaderTop: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.spacing.sm },
   sessionName: { fontSize: theme.fontSize.xxl, fontFamily: theme.fonts.display, color: theme.colors.text },
   sessionDate: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.body, color: theme.colors.textMuted, marginTop: 4 },
+  deleteSessionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.cardWarm,
+    ...theme.shadow.soft,
+  },
+  deleteSessionText: { fontSize: 15 },
   progressPill: {
     flexDirection: 'row',
     alignItems: 'center',

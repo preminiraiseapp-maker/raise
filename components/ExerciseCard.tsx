@@ -13,12 +13,14 @@ type Props = {
   onChangeWeight: (setId: string, val: string) => void
   onToggleWarmup: (setId: string) => void
   onAddSet: () => void
+  onDeleteSet: (setId: string) => void
+  onDeleteExercise: () => void
   readonly?: boolean
 }
 
 export default function ExerciseCard({
   exerciseName, muscleGroup, sets,
-  onToggleComplete, onChangeReps, onChangeWeight, onToggleWarmup, onAddSet,
+  onToggleComplete, onChangeReps, onChangeWeight, onToggleWarmup, onAddSet, onDeleteSet, onDeleteExercise,
   readonly,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false)
@@ -26,15 +28,22 @@ export default function ExerciseCard({
 
   return (
     <View style={styles.card}>
-      <TouchableOpacity style={styles.header} onPress={() => setCollapsed((c) => !c)}>
-        <View style={styles.headerLeft}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerLeft} onPress={() => setCollapsed((c) => !c)}>
           <Text style={styles.exerciseName}>{exerciseName}</Text>
           {muscleGroup && <Text style={styles.muscleTag}>{muscleGroup}</Text>}
-        </View>
-        <Text style={styles.progress}>
-          {completedCount}/{sets.length} {collapsed ? '⌄' : '⌃'}
-        </Text>
-      </TouchableOpacity>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setCollapsed((c) => !c)}>
+          <Text style={styles.progress}>
+            {completedCount}/{sets.length} {collapsed ? '⌄' : '⌃'}
+          </Text>
+        </TouchableOpacity>
+        {!readonly && (
+          <TouchableOpacity onPress={onDeleteExercise} style={styles.removeBtn} hitSlop={8}>
+            <Text style={styles.removeText}>✕</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {!collapsed && (
         <>
@@ -56,6 +65,7 @@ export default function ExerciseCard({
               onChangeReps={(v) => onChangeReps(set.id, v)}
               onChangeWeight={(v) => onChangeWeight(set.id, v)}
               onToggleWarmup={() => onToggleWarmup(set.id)}
+              onDelete={() => onDeleteSet(set.id)}
               readonly={readonly}
             />
           ))}
@@ -84,10 +94,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: theme.spacing.sm,
     padding: theme.spacing.md,
     paddingBottom: theme.spacing.sm,
   },
   headerLeft: { flex: 1 },
+  removeBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background,
+  },
+  removeText: { fontSize: 12, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.danger },
   exerciseName: {
     fontSize: theme.fontSize.lg,
     fontFamily: theme.fonts.bodyBold,
