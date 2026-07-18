@@ -2,10 +2,13 @@ export type MuscleGroup = 'Chest' | 'Back' | 'Legs' | 'Shoulders' | 'Arms' | 'Co
 
 export type SessionStatus = 'planned' | 'completed'
 
+export type TrackingType = 'reps_weight' | 'time'
+
 export interface Exercise {
   id: string
   name: string
   muscle_group: MuscleGroup | null
+  tracking_type: TrackingType
   created_at: string
 }
 
@@ -30,6 +33,8 @@ export interface WorkoutSet {
   planned_weight: number | null
   actual_reps: number | null
   actual_weight: number | null
+  planned_duration_minutes: number | null
+  actual_duration_minutes: number | null
   completed: boolean
   created_at: string
 }

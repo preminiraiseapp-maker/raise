@@ -16,17 +16,25 @@ export default function ExerciseDetailScreen() {
   useFocusEffect(useCallback(() => { refetch() }, [refetch]))
 
   const exercise = exercises.find((e) => e.id === id)
+  const isTime = exercise?.tracking_type === 'time'
 
-  // Group by session date, pick top weight per session
-  const sessionMap = new Map<string, { date: string; topWeight: number; totalSets: number; topReps: number }>()
+  // Group by session date: pick top weight per session, or sum duration per session
+  const sessionMap = new Map<string, { date: string; topWeight: number; totalSets: number; topReps: number; totalDuration: number }>()
   for (const s of sets) {
     const date = s.session?.date ?? ''
     const weight = s.actual_weight ?? 0
     const reps = s.actual_reps ?? 0
-    if (!sessionMap.has(date) || weight > sessionMap.get(date)!.topWeight) {
-      sessionMap.set(date, { date, topWeight: weight, totalSets: 0, topReps: reps })
+    const duration = s.actual_duration_minutes ?? 0
+    if (!sessionMap.has(date)) {
+      sessionMap.set(date, { date, topWeight: weight, totalSets: 0, topReps: reps, totalDuration: 0 })
     }
-    sessionMap.get(date)!.totalSets++
+    const entry = sessionMap.get(date)!
+    if (weight > entry.topWeight) {
+      entry.topWeight = weight
+      entry.topReps = reps
+    }
+    entry.totalDuration += duration
+    entry.totalSets++
   }
 
   const sessionHistory = Array.from(sessionMap.values())
@@ -38,12 +46,16 @@ export default function ExerciseDetailScreen() {
     const est = epley1RM(s.topWeight, s.topReps)
     return Math.max(max, est)
   }, 0)
+  const longestSession = sessionHistory.reduce<number>((max, s) => Math.max(max, s.totalDuration), 0)
+  const totalTime = sessionHistory.reduce<number>((sum, s) => sum + s.totalDuration, 0)
 
   const chartData = sessionHistory.map((s) => ({
-    value: s.topWeight,
+    value: isTime ? s.totalDuration : s.topWeight,
     label: format(new Date(s.date + 'T00:00:00'), 'd/M'),
     dataPointColor: theme.colors.accent,
   }))
+
+  const hasStats = isTime ? longestSession > 0 : pr > 0
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -54,20 +66,39 @@ export default function ExerciseDetailScreen() {
         )}
       </View>
 
-      {pr > 0 && (
+      {hasStats && (
         <View style={styles.prRow}>
-          <View style={styles.prCard}>
-            <Text style={styles.prLabel}>Top Weight</Text>
-            <Text style={styles.prValue}>{pr}kg</Text>
-          </View>
-          <View style={styles.prCard}>
-            <Text style={styles.prLabel}>Est. 1RM</Text>
-            <Text style={styles.prValue}>{prEstimated1RM}kg</Text>
-          </View>
-          <View style={styles.prCard}>
-            <Text style={styles.prLabel}>Sessions</Text>
-            <Text style={styles.prValue}>{sessionHistory.length}</Text>
-          </View>
+          {isTime ? (
+            <>
+              <View style={styles.prCard}>
+                <Text style={styles.prLabel}>Longest</Text>
+                <Text style={styles.prValue}>{longestSession}min</Text>
+              </View>
+              <View style={styles.prCard}>
+                <Text style={styles.prLabel}>Total Time</Text>
+                <Text style={styles.prValue}>{totalTime}min</Text>
+              </View>
+              <View style={styles.prCard}>
+                <Text style={styles.prLabel}>Sessions</Text>
+                <Text style={styles.prValue}>{sessionHistory.length}</Text>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.prCard}>
+                <Text style={styles.prLabel}>Top Weight</Text>
+                <Text style={styles.prValue}>{pr}kg</Text>
+              </View>
+              <View style={styles.prCard}>
+                <Text style={styles.prLabel}>Est. 1RM</Text>
+                <Text style={styles.prValue}>{prEstimated1RM}kg</Text>
+              </View>
+              <View style={styles.prCard}>
+                <Text style={styles.prLabel}>Sessions</Text>
+                <Text style={styles.prValue}>{sessionHistory.length}</Text>
+              </View>
+            </>
+          )}
         </View>
       )}
 
@@ -82,7 +113,7 @@ export default function ExerciseDetailScreen() {
         <>
           {chartData.length >= 2 && (
             <View style={styles.chartCard}>
-              <Text style={styles.chartTitle}>Weight Progress (kg)</Text>
+              <Text style={styles.chartTitle}>{isTime ? 'Duration Progress (min)' : 'Weight Progress (kg)'}</Text>
               <LineChart
                 data={chartData}
                 color={theme.colors.accent}
@@ -113,8 +144,14 @@ export default function ExerciseDetailScreen() {
                 {format(new Date(s.date + 'T00:00:00'), 'EEE d MMM yyyy')}
               </Text>
               <View style={styles.historyRight}>
-                <Text style={styles.historyWeight}>{s.topWeight}kg</Text>
-                <Text style={styles.historySets}>{s.totalSets} sets</Text>
+                {isTime ? (
+                  <Text style={styles.historyWeight}>{s.totalDuration}min</Text>
+                ) : (
+                  <>
+                    <Text style={styles.historyWeight}>{s.topWeight}kg</Text>
+                    <Text style={styles.historySets}>{s.totalSets} sets</Text>
+                  </>
+                )}
               </View>
             </View>
           ))}

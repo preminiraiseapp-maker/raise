@@ -63,6 +63,7 @@ export default function PlanScreen() {
               is_warmup: s.is_warmup,
               planned_reps: s.actual_reps ?? s.planned_reps,
               planned_weight: s.actual_weight ?? s.planned_weight,
+              planned_duration_minutes: s.actual_duration_minutes ?? s.planned_duration_minutes,
             })),
           )
         }

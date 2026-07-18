@@ -5,18 +5,23 @@ import { format1RM } from '@/lib/oneRepMax'
 import type { WorkoutSetWithExercise } from '@/types/database'
 
 type Props = {
-  set: WorkoutSetWithExercise & { tempReps?: string; tempWeight?: string }
+  set: WorkoutSetWithExercise & { tempReps?: string; tempWeight?: string; tempDuration?: string }
   onToggleComplete: () => void
   onChangeReps: (val: string) => void
   onChangeWeight: (val: string) => void
+  onChangeDuration: (val: string) => void
   onToggleWarmup: () => void
   onDelete: () => void
   readonly?: boolean
 }
 
-export default function SetRow({ set, onToggleComplete, onChangeReps, onChangeWeight, onToggleWarmup, onDelete, readonly }: Props) {
+export default function SetRow({
+  set, onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onToggleWarmup, onDelete, readonly,
+}: Props) {
+  const isTime = set.exercise?.tracking_type === 'time'
   const reps = set.actual_reps ?? set.planned_reps
   const weight = set.actual_weight ?? set.planned_weight
+  const duration = set.actual_duration_minutes ?? set.planned_duration_minutes
 
   async function handleComplete() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -35,42 +40,64 @@ export default function SetRow({ set, onToggleComplete, onChangeReps, onChangeWe
 
       <Text style={styles.setNum}>{set.set_number}</Text>
 
-      {readonly ? (
-        <Text style={styles.valueText}>{set.actual_reps ?? '—'}</Text>
+      {isTime ? (
+        <>
+          {readonly ? (
+            <Text style={styles.valueText}>{set.actual_duration_minutes ?? '—'}</Text>
+          ) : (
+            <TextInput
+              style={styles.input}
+              value={set.tempDuration ?? String(duration ?? '')}
+              onChangeText={onChangeDuration}
+              keyboardType="decimal-pad"
+              placeholder="—"
+              placeholderTextColor={theme.colors.textMuted}
+              selectTextOnFocus
+            />
+          )}
+          <Text style={styles.unit}>min</Text>
+          <View style={{ flex: 1 }} />
+        </>
       ) : (
-        <TextInput
-          style={styles.input}
-          value={set.tempReps ?? String(reps ?? '')}
-          onChangeText={onChangeReps}
-          keyboardType="number-pad"
-          placeholder="—"
-          placeholderTextColor={theme.colors.textMuted}
-          selectTextOnFocus
-        />
+        <>
+          {readonly ? (
+            <Text style={styles.valueText}>{set.actual_reps ?? '—'}</Text>
+          ) : (
+            <TextInput
+              style={styles.input}
+              value={set.tempReps ?? String(reps ?? '')}
+              onChangeText={onChangeReps}
+              keyboardType="number-pad"
+              placeholder="—"
+              placeholderTextColor={theme.colors.textMuted}
+              selectTextOnFocus
+            />
+          )}
+
+          <Text style={styles.cross}>×</Text>
+
+          {readonly ? (
+            <Text style={styles.valueText}>{set.actual_weight ?? '—'}</Text>
+          ) : (
+            <TextInput
+              style={styles.input}
+              value={set.tempWeight ?? String(weight ?? '')}
+              onChangeText={onChangeWeight}
+              keyboardType="decimal-pad"
+              placeholder="—"
+              placeholderTextColor={theme.colors.textMuted}
+              selectTextOnFocus
+            />
+          )}
+
+          <Text style={styles.oneRM}>
+            {format1RM(
+              set.actual_weight ?? set.planned_weight,
+              set.actual_reps ?? set.planned_reps,
+            )}
+          </Text>
+        </>
       )}
-
-      <Text style={styles.cross}>×</Text>
-
-      {readonly ? (
-        <Text style={styles.valueText}>{set.actual_weight ?? '—'}</Text>
-      ) : (
-        <TextInput
-          style={styles.input}
-          value={set.tempWeight ?? String(weight ?? '')}
-          onChangeText={onChangeWeight}
-          keyboardType="decimal-pad"
-          placeholder="—"
-          placeholderTextColor={theme.colors.textMuted}
-          selectTextOnFocus
-        />
-      )}
-
-      <Text style={styles.oneRM}>
-        {format1RM(
-          set.actual_weight ?? set.planned_weight,
-          set.actual_reps ?? set.planned_reps,
-        )}
-      </Text>
 
       {!readonly && (
         <TouchableOpacity onPress={handleComplete} style={[styles.checkBtn, set.completed && styles.checkBtnDone]}>
@@ -138,6 +165,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   cross: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.body, color: theme.colors.textMuted },
+  unit: { fontSize: theme.fontSize.xs, fontFamily: theme.fonts.bodyMedium, color: theme.colors.textMuted },
   oneRM: {
     flex: 1,
     fontSize: theme.fontSize.sm,

@@ -113,3 +113,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.workout_sessions TO authenticated
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.workout_sets TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.body_weight_logs TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.step_logs TO authenticated;
+
+-- CARDIO TIME TRACKING
+-- Treadmill/Stairmaster-style exercises are tracked by duration instead of
+-- reps and weight. Run this block in the Supabase SQL Editor.
+ALTER TABLE exercises ADD COLUMN IF NOT EXISTS tracking_type TEXT NOT NULL DEFAULT 'reps_weight'
+  CHECK (tracking_type IN ('reps_weight', 'time'));
+ALTER TABLE workout_sets ADD COLUMN IF NOT EXISTS planned_duration_minutes NUMERIC(6,2);
+ALTER TABLE workout_sets ADD COLUMN IF NOT EXISTS actual_duration_minutes NUMERIC(6,2);
+
+UPDATE exercises SET tracking_type = 'time' WHERE name IN ('Treadmill', 'Stairmaster');

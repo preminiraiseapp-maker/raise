@@ -7,10 +7,11 @@ import type { WorkoutSetWithExercise } from '@/types/database'
 type Props = {
   exerciseName: string
   muscleGroup: string | null
-  sets: (WorkoutSetWithExercise & { tempReps?: string; tempWeight?: string })[]
+  sets: (WorkoutSetWithExercise & { tempReps?: string; tempWeight?: string; tempDuration?: string })[]
   onToggleComplete: (setId: string) => void
   onChangeReps: (setId: string, val: string) => void
   onChangeWeight: (setId: string, val: string) => void
+  onChangeDuration: (setId: string, val: string) => void
   onToggleWarmup: (setId: string) => void
   onAddSet: () => void
   onDeleteSet: (setId: string) => void
@@ -20,11 +21,12 @@ type Props = {
 
 export default function ExerciseCard({
   exerciseName, muscleGroup, sets,
-  onToggleComplete, onChangeReps, onChangeWeight, onToggleWarmup, onAddSet, onDeleteSet, onDeleteExercise,
+  onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onToggleWarmup, onAddSet, onDeleteSet, onDeleteExercise,
   readonly,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const completedCount = sets.filter((s) => s.completed).length
+  const isTime = sets[0]?.exercise?.tracking_type === 'time'
 
   return (
     <View style={styles.card}>
@@ -50,10 +52,16 @@ export default function ExerciseCard({
           <View style={styles.setHeader}>
             <Text style={[styles.colLabel, { width: 26 }]}>Warm</Text>
             <Text style={[styles.colLabel, { width: 18 }]}>#</Text>
-            <Text style={[styles.colLabel, { width: 50 }]}>Reps</Text>
-            <Text style={[styles.colLabel, { width: 14 }]}> </Text>
-            <Text style={[styles.colLabel, { width: 50 }]}>kg</Text>
-            <Text style={[styles.colLabel, { flex: 1 }]}>1RM</Text>
+            {isTime ? (
+              <Text style={[styles.colLabel, { flex: 1 }]}>Duration</Text>
+            ) : (
+              <>
+                <Text style={[styles.colLabel, { width: 50 }]}>Reps</Text>
+                <Text style={[styles.colLabel, { width: 14 }]}> </Text>
+                <Text style={[styles.colLabel, { width: 50 }]}>kg</Text>
+                <Text style={[styles.colLabel, { flex: 1 }]}>1RM</Text>
+              </>
+            )}
             <Text style={[styles.colLabel, { width: 32 }]}> </Text>
           </View>
 
@@ -64,6 +72,7 @@ export default function ExerciseCard({
               onToggleComplete={() => onToggleComplete(set.id)}
               onChangeReps={(v) => onChangeReps(set.id, v)}
               onChangeWeight={(v) => onChangeWeight(set.id, v)}
+              onChangeDuration={(v) => onChangeDuration(set.id, v)}
               onToggleWarmup={() => onToggleWarmup(set.id)}
               onDelete={() => onDeleteSet(set.id)}
               readonly={readonly}

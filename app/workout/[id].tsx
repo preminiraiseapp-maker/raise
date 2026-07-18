@@ -10,7 +10,7 @@ import ExerciseCard from '@/components/ExerciseCard'
 import RestTimer from '@/components/RestTimer'
 import type { WorkoutSetWithExercise } from '@/types/database'
 
-type SetState = WorkoutSetWithExercise & { tempReps: string; tempWeight: string }
+type SetState = WorkoutSetWithExercise & { tempReps: string; tempWeight: string; tempDuration: string }
 
 export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -32,6 +32,7 @@ export default function WorkoutScreen() {
           ...s,
           tempReps: String(s.actual_reps ?? s.planned_reps ?? ''),
           tempWeight: String(s.actual_weight ?? s.planned_weight ?? ''),
+          tempDuration: String(s.actual_duration_minutes ?? s.planned_duration_minutes ?? ''),
         }))
       )
     }
@@ -70,16 +71,25 @@ export default function WorkoutScreen() {
     const set = localSets.find((s) => s.id === setId)
     if (!set) return
     const newCompleted = !set.completed
-    const reps = parseInt(set.tempReps) || null
-    const weight = parseFloat(set.tempWeight) || null
+    const isTime = set.exercise?.tracking_type === 'time'
 
-    updateSet(setId, { completed: newCompleted, actual_reps: reps ?? undefined, actual_weight: weight ?? undefined })
-
-    await supabase.from('workout_sets').update({
-      completed: newCompleted,
-      actual_reps: reps,
-      actual_weight: weight,
-    }).eq('id', setId)
+    if (isTime) {
+      const duration = parseFloat(set.tempDuration) || null
+      updateSet(setId, { completed: newCompleted, actual_duration_minutes: duration ?? undefined })
+      await supabase.from('workout_sets').update({
+        completed: newCompleted,
+        actual_duration_minutes: duration,
+      }).eq('id', setId)
+    } else {
+      const reps = parseInt(set.tempReps) || null
+      const weight = parseFloat(set.tempWeight) || null
+      updateSet(setId, { completed: newCompleted, actual_reps: reps ?? undefined, actual_weight: weight ?? undefined })
+      await supabase.from('workout_sets').update({
+        completed: newCompleted,
+        actual_reps: reps,
+        actual_weight: weight,
+      }).eq('id', setId)
+    }
 
     if (newCompleted) setShowTimer(true)
   }
@@ -89,18 +99,25 @@ export default function WorkoutScreen() {
     const lastSet = exerciseSets[exerciseSets.length - 1]
     const setNumber = exerciseSets.length + 1
     const exerciseOrder = lastSet?.exercise_order ?? sortedExerciseIds.indexOf(exerciseId)
+    const isTime = exercises.find((e) => e.id === exerciseId)?.tracking_type === 'time'
 
     const { data } = await supabase.from('workout_sets').insert({
       session_id: session.id,
       exercise_id: exerciseId,
       exercise_order: exerciseOrder,
       set_number: setNumber,
-      planned_reps: lastSet?.actual_reps ?? lastSet?.planned_reps ?? null,
-      planned_weight: lastSet?.actual_weight ?? lastSet?.planned_weight ?? null,
+      planned_reps: isTime ? null : lastSet?.actual_reps ?? lastSet?.planned_reps ?? null,
+      planned_weight: isTime ? null : lastSet?.actual_weight ?? lastSet?.planned_weight ?? null,
+      planned_duration_minutes: isTime ? lastSet?.actual_duration_minutes ?? lastSet?.planned_duration_minutes ?? null : null,
     }).select('*, exercise:exercises(*)').single()
 
     if (data) {
-      setLocalSets((prev) => [...prev, { ...data, tempReps: String(data.planned_reps ?? ''), tempWeight: String(data.planned_weight ?? '') } as SetState])
+      setLocalSets((prev) => [...prev, {
+        ...data,
+        tempReps: String(data.planned_reps ?? ''),
+        tempWeight: String(data.planned_weight ?? ''),
+        tempDuration: String(data.planned_duration_minutes ?? ''),
+      } as SetState])
     }
   }
 
@@ -116,7 +133,7 @@ export default function WorkoutScreen() {
     }).select('*, exercise:exercises(*)').single()
 
     if (data) {
-      setLocalSets((prev) => [...prev, { ...data, tempReps: '', tempWeight: '' } as SetState])
+      setLocalSets((prev) => [...prev, { ...data, tempReps: '', tempWeight: '', tempDuration: '' } as SetState])
     }
   }
 
@@ -158,10 +175,11 @@ export default function WorkoutScreen() {
     setSaving(true)
     await Promise.all(
       localSets.map((s) =>
-        supabase.from('workout_sets').update({
-          actual_reps: parseInt(s.tempReps) || null,
-          actual_weight: parseFloat(s.tempWeight) || null,
-        }).eq('id', s.id)
+        supabase.from('workout_sets').update(
+          s.exercise?.tracking_type === 'time'
+            ? { actual_duration_minutes: parseFloat(s.tempDuration) || null }
+            : { actual_reps: parseInt(s.tempReps) || null, actual_weight: parseFloat(s.tempWeight) || null }
+        ).eq('id', s.id)
       )
     )
     await supabase.from('workout_sessions').update({ status: 'completed' }).eq('id', session.id)
@@ -257,6 +275,7 @@ export default function WorkoutScreen() {
               onToggleComplete={toggleComplete}
               onChangeReps={(setId, val) => updateSet(setId, { tempReps: val })}
               onChangeWeight={(setId, val) => updateSet(setId, { tempWeight: val })}
+              onChangeDuration={(setId, val) => updateSet(setId, { tempDuration: val })}
               onToggleWarmup={toggleWarmup}
               onAddSet={() => addSet(exerciseId)}
               onDeleteSet={deleteSet}

@@ -34,3 +34,5 @@ INSERT INTO exercises (name, muscle_group) VALUES
   ('Treadmill', 'Cardio'),
   ('Rowing Machine', 'Cardio'),
   ('Stairmaster', 'Cardio');
+
+UPDATE exercises SET tracking_type = 'time' WHERE name IN ('Treadmill', 'Stairmaster');
