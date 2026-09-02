@@ -35,4 +35,5 @@ INSERT INTO exercises (name, muscle_group) VALUES
   ('Rowing Machine', 'Cardio'),
   ('Stairmaster', 'Cardio');
 
-UPDATE exercises SET tracking_type = 'time' WHERE muscle_group = 'Cardio';
+UPDATE exercises SET tracking_type = 'time'
+  WHERE muscle_group = 'Cardio' OR name ILIKE '%plank%';

@@ -24,7 +24,7 @@ export function useExercises() {
       .insert({
         name,
         muscle_group: muscleGroup,
-        tracking_type: muscleGroup === 'Cardio' ? 'time' : 'reps_weight',
+        tracking_type: muscleGroup === 'Cardio' || /plank/i.test(name) ? 'time' : 'reps_weight',
       })
       .select()
       .single()
