@@ -40,6 +40,7 @@ export function useExercises() {
       .eq('id', id)
       .select()
       .single()
+    if (error) console.error('updateExercise:', error.message)
     if (!error && data) {
       setExercises((prev) => prev.map((e) => (e.id === id ? data : e)))
     }
