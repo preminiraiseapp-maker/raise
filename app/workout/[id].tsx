@@ -137,12 +137,12 @@ export default function WorkoutScreen() {
     }
   }
 
-  async function toggleWarmup(setId: string) {
+  async function cycleEffort(setId: string) {
     const set = localSets.find((s) => s.id === setId)
     if (!set) return
-    const newWarmup = !set.is_warmup
-    updateSet(setId, { is_warmup: newWarmup })
-    await supabase.from('workout_sets').update({ is_warmup: newWarmup }).eq('id', setId)
+    const next = !set.effort ? 'hard' : set.effort === 'hard' ? 'max' : null
+    updateSet(setId, { effort: next })
+    await supabase.from('workout_sets').update({ effort: next }).eq('id', setId)
   }
 
   async function deleteSet(setId: string) {
@@ -189,11 +189,10 @@ export default function WorkoutScreen() {
   }
 
   function saveAndComplete() {
-    const workingSets = localSets.filter((s) => !s.is_warmup)
-    const doneSets = workingSets.filter((s) => s.completed)
-    const msg = workingSets.length === 0
+    const doneSets = localSets.filter((s) => s.completed)
+    const msg = localSets.length === 0
       ? 'No sets logged yet. Complete anyway?'
-      : `${doneSets.length} of ${workingSets.length} working sets done. Complete?`
+      : `${doneSets.length} of ${localSets.length} sets done. Complete?`
 
     if (Platform.OS === 'web') {
       if (window.confirm(msg)) doComplete()
@@ -235,8 +234,8 @@ export default function WorkoutScreen() {
   }
 
   const dateLabel = format(new Date(session.date + 'T00:00:00'), 'EEE d MMM yyyy')
-  const completedSets = localSets.filter((s) => s.completed && !s.is_warmup).length
-  const totalSets = localSets.filter((s) => !s.is_warmup).length
+  const completedSets = localSets.filter((s) => s.completed).length
+  const totalSets = localSets.length
 
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const sessionDate = new Date(session.date + 'T00:00:00')
@@ -258,7 +257,7 @@ export default function WorkoutScreen() {
           {totalSets > 0 && (
             <View style={styles.progressPill}>
               <View style={styles.progressDot} />
-              <Text style={styles.progress}>{completedSets} / {totalSets} working sets done</Text>
+              <Text style={styles.progress}>{completedSets} / {totalSets} sets done</Text>
             </View>
           )}
         </View>
@@ -276,7 +275,7 @@ export default function WorkoutScreen() {
               onChangeReps={(setId, val) => updateSet(setId, { tempReps: val })}
               onChangeWeight={(setId, val) => updateSet(setId, { tempWeight: val })}
               onChangeDuration={(setId, val) => updateSet(setId, { tempDuration: val })}
-              onToggleWarmup={toggleWarmup}
+              onCycleEffort={cycleEffort}
               onAddSet={() => addSet(exerciseId)}
               onDeleteSet={deleteSet}
               onDeleteExercise={() => confirmDeleteExercise(exerciseId, ex?.name ?? 'this exercise')}

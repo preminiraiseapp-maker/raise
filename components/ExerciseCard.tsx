@@ -12,7 +12,7 @@ type Props = {
   onChangeReps: (setId: string, val: string) => void
   onChangeWeight: (setId: string, val: string) => void
   onChangeDuration: (setId: string, val: string) => void
-  onToggleWarmup: (setId: string) => void
+  onCycleEffort: (setId: string) => void
   onAddSet: () => void
   onDeleteSet: (setId: string) => void
   onDeleteExercise: () => void
@@ -21,7 +21,7 @@ type Props = {
 
 export default function ExerciseCard({
   exerciseName, muscleGroup, sets,
-  onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onToggleWarmup, onAddSet, onDeleteSet, onDeleteExercise,
+  onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCycleEffort, onAddSet, onDeleteSet, onDeleteExercise,
   readonly,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false)
@@ -50,7 +50,7 @@ export default function ExerciseCard({
       {!collapsed && (
         <>
           <View style={styles.setHeader}>
-            <Text style={[styles.colLabel, { width: 26 }]}>Warm</Text>
+            <Text style={[styles.colLabel, { width: 26 }]}>RPE</Text>
             <Text style={[styles.colLabel, { width: 18 }]}>#</Text>
             {isTime ? (
               <Text style={[styles.colLabel, { flex: 1 }]}>Duration</Text>
@@ -73,7 +73,7 @@ export default function ExerciseCard({
               onChangeReps={(v) => onChangeReps(set.id, v)}
               onChangeWeight={(v) => onChangeWeight(set.id, v)}
               onChangeDuration={(v) => onChangeDuration(set.id, v)}
-              onToggleWarmup={() => onToggleWarmup(set.id)}
+              onCycleEffort={() => onCycleEffort(set.id)}
               onDelete={() => onDeleteSet(set.id)}
               readonly={readonly}
             />

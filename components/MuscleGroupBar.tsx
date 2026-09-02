@@ -16,7 +16,6 @@ export default function MuscleGroupBar({ sessions }: Props) {
   for (const session of sessions) {
     if (session.status !== 'completed') continue
     for (const set of session.workout_sets ?? []) {
-      if (set.is_warmup) continue
       const group = set.exercise?.muscle_group
       if (group) setCounts[group] = (setCounts[group] ?? 0) + 1
     }

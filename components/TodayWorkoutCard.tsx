@@ -22,8 +22,8 @@ export default function TodayWorkoutCard({ session, onPress }: Props) {
     )
   }
 
-  const workingSets = session.workout_sets?.filter((s) => !s.is_warmup) ?? []
-  const completedSets = workingSets.filter((s) => s.completed).length
+  const allSets = session.workout_sets ?? []
+  const completedSets = allSets.filter((s) => s.completed).length
   const isCompleted = session.status === 'completed'
 
   return (
@@ -37,8 +37,8 @@ export default function TodayWorkoutCard({ session, onPress }: Props) {
         </View>
       </View>
       <Text style={styles.name}>{session.name}</Text>
-      {workingSets.length > 0 && (
-        <Text style={styles.meta}>{completedSets} / {workingSets.length} working sets done</Text>
+      {allSets.length > 0 && (
+        <Text style={styles.meta}>{completedSets} / {allSets.length} sets done</Text>
       )}
       <Text style={styles.cta}>{isCompleted ? 'View workout' : 'Continue workout'} →</Text>
     </TouchableOpacity>

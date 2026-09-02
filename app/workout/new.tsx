@@ -87,7 +87,6 @@ export default function NewWorkoutScreen() {
             exercise_id: s.exercise_id,
             exercise_order: s.exercise_order,
             set_number: s.set_number,
-            is_warmup: s.is_warmup,
             planned_reps: s.actual_reps ?? s.planned_reps,
             planned_weight: s.actual_weight ?? s.planned_weight,
             planned_duration_minutes: s.actual_duration_minutes ?? s.planned_duration_minutes,
