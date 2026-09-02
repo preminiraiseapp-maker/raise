@@ -1,5 +1,5 @@
 export const MUSCLE_GROUPS = [
-  'Chest', 'Back', 'Legs', 'Glutes', 'Shoulders', 'Arms', 'Core', 'Cardio',
+  'Chest', 'Back', 'Legs', 'Glutes', 'Shoulders', 'Arms', 'Core', 'Full Body', 'Cardio',
 ] as const
 
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number]
