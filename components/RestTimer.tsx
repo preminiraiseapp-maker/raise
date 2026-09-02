@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native'
 import { theme } from '@/constants/theme'
 
-const DURATIONS = [60, 90, 120, 180]
+const DURATIONS = [30, 60, 90, 120, 180]
+
+// How long the "Done!" state lingers before the timer closes itself.
+const AUTO_CLOSE_MS = 1500
 
 type Props = {
   visible: boolean
@@ -38,6 +41,13 @@ export default function RestTimer({ visible, onDismiss }: Props) {
     }, 1000)
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [running])
+
+  // Close the popup on its own once the countdown finishes.
+  useEffect(() => {
+    if (!visible || remaining !== 0) return
+    const t = setTimeout(onDismiss, AUTO_CLOSE_MS)
+    return () => clearTimeout(t)
+  }, [visible, remaining, onDismiss])
 
   function changeDuration(d: number) {
     setDuration(d)
@@ -132,6 +142,8 @@ const styles = StyleSheet.create({
   },
   durations: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
     gap: theme.spacing.sm,
     marginBottom: theme.spacing.lg,
   },
