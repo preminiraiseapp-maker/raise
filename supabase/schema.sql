@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS exercises (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
-  muscle_group TEXT CHECK (muscle_group IN ('Chest','Back','Legs','Shoulders','Arms','Core','Cardio')),
+  muscle_group TEXT CHECK (muscle_group IN ('Chest','Back','Legs','Glutes','Shoulders','Arms','Core','Cardio')),
   machine_settings TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -157,3 +157,14 @@ UPDATE exercises SET tracking_type = 'time' WHERE muscle_group = 'Cardio';
 -- Any exercise with "plank" in the name is a hold, so track it by duration.
 -- Run this block in the Supabase SQL Editor.
 UPDATE exercises SET tracking_type = 'time' WHERE name ILIKE '%plank%';
+
+-- GLUTES MUSCLE GROUP
+-- Widen the muscle_group check constraint to allow 'Glutes'.
+-- Run this block in the Supabase SQL Editor.
+ALTER TABLE exercises DROP CONSTRAINT IF EXISTS exercises_muscle_group_check;
+ALTER TABLE exercises ADD CONSTRAINT exercises_muscle_group_check
+  CHECK (muscle_group IN ('Chest','Back','Legs','Glutes','Shoulders','Arms','Core','Cardio'));
+
+-- Optionally move existing exercises into Glutes:
+-- UPDATE exercises SET muscle_group = 'Glutes'
+--   WHERE name IN ('Hip Thrust', 'Cable Kickbacks', 'Glute Bridge');

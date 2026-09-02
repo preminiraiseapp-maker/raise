@@ -1,10 +1,11 @@
 import { View, Text, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { theme } from '@/constants/theme'
+import { MUSCLE_GROUPS } from '@/types/database'
 import type { WorkoutSessionWithSets } from '@/types/database'
-import type { MuscleGroup } from '@/types/database'
 
-const MUSCLE_GROUPS: MuscleGroup[] = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core']
+// Cardio has no comparable "volume", so it's left out of the balance chart.
+const BALANCE_GROUPS = MUSCLE_GROUPS.filter((g) => g !== 'Cardio')
 
 type Props = {
   sessions: WorkoutSessionWithSets[]
@@ -26,7 +27,7 @@ export default function MuscleGroupBar({ sessions }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Muscle Balance</Text>
-      {MUSCLE_GROUPS.map((group) => {
+      {BALANCE_GROUPS.map((group) => {
         const count = setCounts[group] ?? 0
         const pct = count / maxSets
         const isEmpty = count === 0

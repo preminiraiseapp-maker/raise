@@ -8,9 +8,7 @@ import { useExercises } from '@/hooks/useExercises'
 import { supabase } from '@/lib/supabase'
 import ExerciseCard from '@/components/ExerciseCard'
 import RestTimer from '@/components/RestTimer'
-import type { WorkoutSetWithExercise, MuscleGroup } from '@/types/database'
-
-const MUSCLE_GROUPS: MuscleGroup[] = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio']
+import { MUSCLE_GROUPS, type WorkoutSetWithExercise, type MuscleGroup } from '@/types/database'
 
 type SetState = WorkoutSetWithExercise & { tempReps: string; tempWeight: string; tempDuration: string }
 
