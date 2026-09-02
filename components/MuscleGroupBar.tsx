@@ -4,8 +4,8 @@ import { theme } from '@/constants/theme'
 import { MUSCLE_GROUPS } from '@/types/database'
 import type { WorkoutSessionWithSets } from '@/types/database'
 
-// Cardio has no comparable "volume", so it's left out of the balance chart.
-const BALANCE_GROUPS = MUSCLE_GROUPS.filter((g) => g !== 'Cardio')
+// Cardio and Full Body aren't balance targets, so they're left out of the chart.
+const BALANCE_GROUPS = MUSCLE_GROUPS.filter((g) => g !== 'Cardio' && g !== 'Full Body')
 
 type Props = {
   sessions: WorkoutSessionWithSets[]
