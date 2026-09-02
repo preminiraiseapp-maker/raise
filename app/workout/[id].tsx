@@ -8,19 +8,29 @@ import { useExercises } from '@/hooks/useExercises'
 import { supabase } from '@/lib/supabase'
 import ExerciseCard from '@/components/ExerciseCard'
 import RestTimer from '@/components/RestTimer'
-import type { WorkoutSetWithExercise } from '@/types/database'
+import type { WorkoutSetWithExercise, MuscleGroup } from '@/types/database'
+
+const MUSCLE_GROUPS: MuscleGroup[] = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio']
 
 type SetState = WorkoutSetWithExercise & { tempReps: string; tempWeight: string; tempDuration: string }
+
+// Capitalise the first letter of each word, leaving the rest as typed so
+// acronyms entered in caps (RDL, OHP) survive.
+function titleCaseName(s: string) {
+  return s.trim().replace(/\S+/g, (w) => w[0].toUpperCase() + w.slice(1))
+}
 
 export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const { session, loading, refetch } = useSession(id)
-  const { exercises } = useExercises()
+  const { exercises, addExercise: createExercise } = useExercises()
   const [localSets, setLocalSets] = useState<SetState[]>([])
   const [showTimer, setShowTimer] = useState(false)
   const [showAddExercise, setShowAddExercise] = useState(false)
   const [exerciseSearch, setExerciseSearch] = useState('')
+  const [newExerciseGroup, setNewExerciseGroup] = useState<MuscleGroup | null>(null)
+  const [creatingExercise, setCreatingExercise] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useFocusEffect(useCallback(() => { refetch() }, [refetch]))
@@ -125,6 +135,7 @@ export default function WorkoutScreen() {
   async function addExercise(exerciseId: string) {
     setShowAddExercise(false)
     setExerciseSearch('')
+    setNewExerciseGroup(null)
     const exerciseOrder = sortedExerciseIds.length
 
     const { data } = await supabase.from('workout_sets').insert({
@@ -137,6 +148,26 @@ export default function WorkoutScreen() {
     if (data) {
       setLocalSets((prev) => [...prev, { ...data, tempReps: '', tempWeight: '', tempDuration: '' } as SetState])
     }
+  }
+
+  async function createAndAddExercise() {
+    const name = titleCaseName(exerciseSearch)
+    if (name.length < 2 || creatingExercise) return
+
+    const existing = exercises.find((e) => e.name.toLowerCase() === name.toLowerCase())
+    if (existing) {
+      addExercise(existing.id)
+      return
+    }
+
+    setCreatingExercise(true)
+    const { data, error } = await createExercise(name, newExerciseGroup)
+    setCreatingExercise(false)
+    if (error || !data) {
+      Alert.alert('Error', 'Could not add that exercise.')
+      return
+    }
+    addExercise(data.id)
   }
 
   async function cycleEffort(setId: string) {
@@ -293,7 +324,7 @@ export default function WorkoutScreen() {
           )
         })}
 
-        <TouchableOpacity style={styles.addExerciseBtn} onPress={() => { setExerciseSearch(''); setShowAddExercise(true) }}>
+        <TouchableOpacity style={styles.addExerciseBtn} onPress={() => { setExerciseSearch(''); setNewExerciseGroup(null); setShowAddExercise(true) }}>
           <Text style={styles.addExerciseBtnText}>+ Add Exercise</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -346,7 +377,36 @@ export default function WorkoutScreen() {
                   {item.muscle_group && <Text style={styles.pickerGroup}>{item.muscle_group}</Text>}
                 </TouchableOpacity>
               )}
-              ListEmptyComponent={<Text style={styles.pickerEmpty}>No exercises match “{exerciseSearch.trim()}”.</Text>}
+              ListEmptyComponent={
+                <View style={styles.pickerEmptyWrap}>
+                  <Text style={styles.pickerEmpty}>No exercises match “{exerciseSearch.trim()}”.</Text>
+                  {exerciseSearch.trim().length >= 2 && (
+                    <>
+                      <Text style={styles.pickerGroupLabel}>Muscle group (optional)</Text>
+                      <View style={styles.pickerGroupRow}>
+                        {MUSCLE_GROUPS.map((g) => (
+                          <TouchableOpacity
+                            key={g}
+                            style={[styles.pickerGroupChip, newExerciseGroup === g && styles.pickerGroupChipActive]}
+                            onPress={() => setNewExerciseGroup(newExerciseGroup === g ? null : g)}
+                          >
+                            <Text style={[styles.pickerGroupChipText, newExerciseGroup === g && styles.pickerGroupChipTextActive]}>{g}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                      <TouchableOpacity
+                        style={[styles.pickerCreateBtn, creatingExercise && styles.pickerCreateBtnDisabled]}
+                        onPress={createAndAddExercise}
+                        disabled={creatingExercise}
+                      >
+                        {creatingExercise
+                          ? <ActivityIndicator color="#FFFFFF" />
+                          : <Text style={styles.pickerCreateBtnText}>+ Create “{titleCaseName(exerciseSearch)}”</Text>}
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
+              }
               style={{ maxHeight: 420 }}
             />
           </TouchableOpacity>
@@ -399,7 +459,17 @@ const styles = StyleSheet.create({
   exercisePickerCard: { backgroundColor: theme.colors.card, borderTopLeftRadius: theme.radius.lg, borderTopRightRadius: theme.radius.lg, padding: theme.spacing.lg, paddingBottom: 40, ...theme.shadow.floating },
   pickerTitle: { fontSize: theme.fontSize.xl, fontFamily: theme.fonts.display, color: theme.colors.text, marginBottom: theme.spacing.md },
   pickerSearch: { height: 44, backgroundColor: theme.colors.background, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.md, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: theme.fontSize.md, borderWidth: 1, borderColor: theme.colors.border, marginBottom: theme.spacing.sm },
-  pickerEmpty: { textAlign: 'center', color: theme.colors.textMuted, fontFamily: theme.fonts.body, fontSize: theme.fontSize.sm, paddingVertical: theme.spacing.xl },
+  pickerEmptyWrap: { alignItems: 'center', paddingVertical: theme.spacing.xl, gap: theme.spacing.md },
+  pickerEmpty: { textAlign: 'center', color: theme.colors.textMuted, fontFamily: theme.fonts.body, fontSize: theme.fontSize.sm },
+  pickerGroupLabel: { fontSize: theme.fontSize.xs, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
+  pickerGroupRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: theme.spacing.sm },
+  pickerGroupChip: { paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.xs, borderRadius: theme.radius.full, borderWidth: 1, borderColor: theme.colors.border },
+  pickerGroupChipActive: { borderColor: theme.colors.accent, backgroundColor: `${theme.colors.accent}22` },
+  pickerGroupChipText: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodyMedium, color: theme.colors.textMuted },
+  pickerGroupChipTextActive: { color: theme.colors.accent, fontFamily: theme.fonts.bodySemiBold },
+  pickerCreateBtn: { backgroundColor: theme.colors.accent, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.lg, height: 44, alignItems: 'center', justifyContent: 'center', ...theme.shadow.soft },
+  pickerCreateBtnDisabled: { opacity: 0.6 },
+  pickerCreateBtnText: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodyBold, color: '#FFFFFF' },
   pickerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: theme.spacing.md, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
   pickerName: { fontSize: theme.fontSize.md, fontFamily: theme.fonts.bodyMedium, color: theme.colors.text },
   pickerGroup: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.accent },
