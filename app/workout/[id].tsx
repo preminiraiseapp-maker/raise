@@ -8,7 +8,9 @@ import { useExercises } from '@/hooks/useExercises'
 import { supabase } from '@/lib/supabase'
 import ExerciseCard from '@/components/ExerciseCard'
 import RestTimer from '@/components/RestTimer'
-import type { WorkoutSetWithExercise } from '@/types/database'
+import type { WorkoutSetWithExercise, MuscleGroup } from '@/types/database'
+
+const MUSCLE_GROUPS: MuscleGroup[] = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio']
 
 type SetState = WorkoutSetWithExercise & { tempReps: string; tempWeight: string; tempDuration: string }
 
@@ -27,6 +29,7 @@ export default function WorkoutScreen() {
   const [showTimer, setShowTimer] = useState(false)
   const [showAddExercise, setShowAddExercise] = useState(false)
   const [exerciseSearch, setExerciseSearch] = useState('')
+  const [newExerciseGroup, setNewExerciseGroup] = useState<MuscleGroup | null>(null)
   const [creatingExercise, setCreatingExercise] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -132,6 +135,7 @@ export default function WorkoutScreen() {
   async function addExercise(exerciseId: string) {
     setShowAddExercise(false)
     setExerciseSearch('')
+    setNewExerciseGroup(null)
     const exerciseOrder = sortedExerciseIds.length
 
     const { data } = await supabase.from('workout_sets').insert({
@@ -157,7 +161,7 @@ export default function WorkoutScreen() {
     }
 
     setCreatingExercise(true)
-    const { data, error } = await createExercise(name, null)
+    const { data, error } = await createExercise(name, newExerciseGroup)
     setCreatingExercise(false)
     if (error || !data) {
       Alert.alert('Error', 'Could not add that exercise.')
@@ -320,7 +324,7 @@ export default function WorkoutScreen() {
           )
         })}
 
-        <TouchableOpacity style={styles.addExerciseBtn} onPress={() => { setExerciseSearch(''); setShowAddExercise(true) }}>
+        <TouchableOpacity style={styles.addExerciseBtn} onPress={() => { setExerciseSearch(''); setNewExerciseGroup(null); setShowAddExercise(true) }}>
           <Text style={styles.addExerciseBtnText}>+ Add Exercise</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -377,15 +381,29 @@ export default function WorkoutScreen() {
                 <View style={styles.pickerEmptyWrap}>
                   <Text style={styles.pickerEmpty}>No exercises match “{exerciseSearch.trim()}”.</Text>
                   {exerciseSearch.trim().length >= 2 && (
-                    <TouchableOpacity
-                      style={[styles.pickerCreateBtn, creatingExercise && styles.pickerCreateBtnDisabled]}
-                      onPress={createAndAddExercise}
-                      disabled={creatingExercise}
-                    >
-                      {creatingExercise
-                        ? <ActivityIndicator color="#FFFFFF" />
-                        : <Text style={styles.pickerCreateBtnText}>+ Create “{titleCaseName(exerciseSearch)}”</Text>}
-                    </TouchableOpacity>
+                    <>
+                      <Text style={styles.pickerGroupLabel}>Muscle group (optional)</Text>
+                      <View style={styles.pickerGroupRow}>
+                        {MUSCLE_GROUPS.map((g) => (
+                          <TouchableOpacity
+                            key={g}
+                            style={[styles.pickerGroupChip, newExerciseGroup === g && styles.pickerGroupChipActive]}
+                            onPress={() => setNewExerciseGroup(newExerciseGroup === g ? null : g)}
+                          >
+                            <Text style={[styles.pickerGroupChipText, newExerciseGroup === g && styles.pickerGroupChipTextActive]}>{g}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                      <TouchableOpacity
+                        style={[styles.pickerCreateBtn, creatingExercise && styles.pickerCreateBtnDisabled]}
+                        onPress={createAndAddExercise}
+                        disabled={creatingExercise}
+                      >
+                        {creatingExercise
+                          ? <ActivityIndicator color="#FFFFFF" />
+                          : <Text style={styles.pickerCreateBtnText}>+ Create “{titleCaseName(exerciseSearch)}”</Text>}
+                      </TouchableOpacity>
+                    </>
                   )}
                 </View>
               }
@@ -443,6 +461,12 @@ const styles = StyleSheet.create({
   pickerSearch: { height: 44, backgroundColor: theme.colors.background, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.md, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: theme.fontSize.md, borderWidth: 1, borderColor: theme.colors.border, marginBottom: theme.spacing.sm },
   pickerEmptyWrap: { alignItems: 'center', paddingVertical: theme.spacing.xl, gap: theme.spacing.md },
   pickerEmpty: { textAlign: 'center', color: theme.colors.textMuted, fontFamily: theme.fonts.body, fontSize: theme.fontSize.sm },
+  pickerGroupLabel: { fontSize: theme.fontSize.xs, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
+  pickerGroupRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: theme.spacing.sm },
+  pickerGroupChip: { paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.xs, borderRadius: theme.radius.full, borderWidth: 1, borderColor: theme.colors.border },
+  pickerGroupChipActive: { borderColor: theme.colors.accent, backgroundColor: `${theme.colors.accent}22` },
+  pickerGroupChipText: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodyMedium, color: theme.colors.textMuted },
+  pickerGroupChipTextActive: { color: theme.colors.accent, fontFamily: theme.fonts.bodySemiBold },
   pickerCreateBtn: { backgroundColor: theme.colors.accent, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.lg, height: 44, alignItems: 'center', justifyContent: 'center', ...theme.shadow.soft },
   pickerCreateBtnDisabled: { opacity: 0.6 },
   pickerCreateBtnText: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodyBold, color: '#FFFFFF' },
