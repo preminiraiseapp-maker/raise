@@ -16,11 +16,12 @@ export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const { session, loading, refetch } = useSession(id)
-  const { exercises } = useExercises()
+  const { exercises, addExercise: createExercise } = useExercises()
   const [localSets, setLocalSets] = useState<SetState[]>([])
   const [showTimer, setShowTimer] = useState(false)
   const [showAddExercise, setShowAddExercise] = useState(false)
   const [exerciseSearch, setExerciseSearch] = useState('')
+  const [creatingExercise, setCreatingExercise] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useFocusEffect(useCallback(() => { refetch() }, [refetch]))
@@ -137,6 +138,26 @@ export default function WorkoutScreen() {
     if (data) {
       setLocalSets((prev) => [...prev, { ...data, tempReps: '', tempWeight: '', tempDuration: '' } as SetState])
     }
+  }
+
+  async function createAndAddExercise() {
+    const name = exerciseSearch.trim()
+    if (name.length < 2 || creatingExercise) return
+
+    const existing = exercises.find((e) => e.name.toLowerCase() === name.toLowerCase())
+    if (existing) {
+      addExercise(existing.id)
+      return
+    }
+
+    setCreatingExercise(true)
+    const { data, error } = await createExercise(name, null)
+    setCreatingExercise(false)
+    if (error || !data) {
+      Alert.alert('Error', 'Could not add that exercise.')
+      return
+    }
+    addExercise(data.id)
   }
 
   async function cycleEffort(setId: string) {
@@ -346,7 +367,22 @@ export default function WorkoutScreen() {
                   {item.muscle_group && <Text style={styles.pickerGroup}>{item.muscle_group}</Text>}
                 </TouchableOpacity>
               )}
-              ListEmptyComponent={<Text style={styles.pickerEmpty}>No exercises match “{exerciseSearch.trim()}”.</Text>}
+              ListEmptyComponent={
+                <View style={styles.pickerEmptyWrap}>
+                  <Text style={styles.pickerEmpty}>No exercises match “{exerciseSearch.trim()}”.</Text>
+                  {exerciseSearch.trim().length >= 2 && (
+                    <TouchableOpacity
+                      style={[styles.pickerCreateBtn, creatingExercise && styles.pickerCreateBtnDisabled]}
+                      onPress={createAndAddExercise}
+                      disabled={creatingExercise}
+                    >
+                      {creatingExercise
+                        ? <ActivityIndicator color="#FFFFFF" />
+                        : <Text style={styles.pickerCreateBtnText}>+ Create “{exerciseSearch.trim()}”</Text>}
+                    </TouchableOpacity>
+                  )}
+                </View>
+              }
               style={{ maxHeight: 420 }}
             />
           </TouchableOpacity>
@@ -399,7 +435,11 @@ const styles = StyleSheet.create({
   exercisePickerCard: { backgroundColor: theme.colors.card, borderTopLeftRadius: theme.radius.lg, borderTopRightRadius: theme.radius.lg, padding: theme.spacing.lg, paddingBottom: 40, ...theme.shadow.floating },
   pickerTitle: { fontSize: theme.fontSize.xl, fontFamily: theme.fonts.display, color: theme.colors.text, marginBottom: theme.spacing.md },
   pickerSearch: { height: 44, backgroundColor: theme.colors.background, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.md, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: theme.fontSize.md, borderWidth: 1, borderColor: theme.colors.border, marginBottom: theme.spacing.sm },
-  pickerEmpty: { textAlign: 'center', color: theme.colors.textMuted, fontFamily: theme.fonts.body, fontSize: theme.fontSize.sm, paddingVertical: theme.spacing.xl },
+  pickerEmptyWrap: { alignItems: 'center', paddingVertical: theme.spacing.xl, gap: theme.spacing.md },
+  pickerEmpty: { textAlign: 'center', color: theme.colors.textMuted, fontFamily: theme.fonts.body, fontSize: theme.fontSize.sm },
+  pickerCreateBtn: { backgroundColor: theme.colors.accent, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.lg, height: 44, alignItems: 'center', justifyContent: 'center', ...theme.shadow.soft },
+  pickerCreateBtnDisabled: { opacity: 0.6 },
+  pickerCreateBtnText: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodyBold, color: '#FFFFFF' },
   pickerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: theme.spacing.md, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
   pickerName: { fontSize: theme.fontSize.md, fontFamily: theme.fonts.bodyMedium, color: theme.colors.text },
   pickerGroup: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.accent },
