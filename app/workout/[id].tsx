@@ -31,6 +31,7 @@ export default function WorkoutScreen() {
   const [exerciseSearch, setExerciseSearch] = useState('')
   const [newExerciseGroup, setNewExerciseGroup] = useState<MuscleGroup | null>(null)
   const [creatingExercise, setCreatingExercise] = useState(false)
+  const [reorderMode, setReorderMode] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useFocusEffect(useCallback(() => { refetch() }, [refetch]))
@@ -194,6 +195,30 @@ export default function WorkoutScreen() {
     await supabase.from('workout_sets').update({ effort: next }).eq('id', setId)
   }
 
+  async function moveExercise(exerciseId: string, dir: -1 | 1) {
+    const order = [...sortedExerciseIds]
+    const i = order.indexOf(exerciseId)
+    const j = i + dir
+    if (j < 0 || j >= order.length) return
+    ;[order[i], order[j]] = [order[j], order[i]]
+
+    const orderMap = new Map(order.map((id, idx) => [id, idx]))
+    setLocalSets((prev) => prev.map((s) => ({
+      ...s,
+      exercise_order: orderMap.get(s.exercise_id) ?? s.exercise_order,
+    })))
+
+    const results = await Promise.all(order.map((id, idx) =>
+      supabase.from('workout_sets').update({ exercise_order: idx })
+        .eq('session_id', session.id).eq('exercise_id', id)))
+    const failed = results.find((r) => r.error)
+    if (failed) {
+      console.error('moveExercise:', failed.error!.message)
+      Alert.alert('Could not save order', 'The new order was not saved.')
+      refetch()
+    }
+  }
+
   async function deleteSet(setId: string) {
     setLocalSets((prev) => prev.filter((s) => s.id !== setId))
     const { error } = await supabase.from('workout_sets').delete().eq('id', setId)
@@ -310,15 +335,22 @@ export default function WorkoutScreen() {
               <Text style={styles.deleteSessionText}>🗑</Text>
             </TouchableOpacity>
           </View>
-          {totalSets > 0 && (
-            <View style={styles.progressPill}>
-              <View style={styles.progressDot} />
-              <Text style={styles.progress}>{completedSets} / {totalSets} sets done</Text>
-            </View>
-          )}
+          <View style={styles.headerMetaRow}>
+            {totalSets > 0 && (
+              <View style={styles.progressPill}>
+                <View style={styles.progressDot} />
+                <Text style={styles.progress}>{completedSets} / {totalSets} sets done</Text>
+              </View>
+            )}
+            {sortedExerciseIds.length > 1 && (
+              <TouchableOpacity style={styles.reorderToggle} onPress={() => setReorderMode((r) => !r)}>
+                <Text style={styles.reorderToggleText}>{reorderMode ? 'Done' : 'Reorder'}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
-        {sortedExerciseIds.map((exerciseId) => {
+        {sortedExerciseIds.map((exerciseId, idx) => {
           const sets = exerciseGroups[exerciseId] ?? []
           const ex = sets[0]?.exercise
           return (
@@ -328,6 +360,11 @@ export default function WorkoutScreen() {
               muscleGroup={ex?.muscle_group ?? null}
               machineSettings={ex?.machine_settings ?? null}
               sets={sets}
+              reorderMode={reorderMode}
+              canMoveUp={idx > 0}
+              canMoveDown={idx < sortedExerciseIds.length - 1}
+              onMoveUp={() => moveExercise(exerciseId, -1)}
+              onMoveDown={() => moveExercise(exerciseId, 1)}
               onToggleComplete={toggleComplete}
               onChangeReps={(setId, val) => updateSet(setId, { tempReps: val })}
               onChangeWeight={(setId, val) => updateSet(setId, { tempWeight: val })}
@@ -342,9 +379,11 @@ export default function WorkoutScreen() {
           )
         })}
 
-        <TouchableOpacity style={styles.addExerciseBtn} onPress={() => { setExerciseSearch(''); setNewExerciseGroup(null); setShowAddExercise(true) }}>
-          <Text style={styles.addExerciseBtnText}>+ Add Exercise</Text>
-        </TouchableOpacity>
+        {!reorderMode && (
+          <TouchableOpacity style={styles.addExerciseBtn} onPress={() => { setExerciseSearch(''); setNewExerciseGroup(null); setShowAddExercise(true) }}>
+            <Text style={styles.addExerciseBtnText}>+ Add Exercise</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       {!isFuture && (
@@ -460,11 +499,25 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.full,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: 6,
-    marginTop: theme.spacing.sm,
     ...theme.shadow.soft,
   },
   progressDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.secondary },
   progress: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.text },
+  headerMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+  },
+  reorderToggle: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 6,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.cardWarm,
+    ...theme.shadow.soft,
+  },
+  reorderToggleText: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.accent },
   addExerciseBtn: { marginHorizontal: theme.spacing.md, marginTop: theme.spacing.md, padding: theme.spacing.md, backgroundColor: theme.colors.cardWarm, borderRadius: theme.radius.md, alignItems: 'center', borderWidth: 1, borderColor: theme.colors.border, borderStyle: 'dashed' },
   addExerciseBtnText: { color: theme.colors.accent, fontSize: theme.fontSize.md, fontFamily: theme.fonts.bodySemiBold },
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: theme.spacing.md, backgroundColor: theme.colors.background },

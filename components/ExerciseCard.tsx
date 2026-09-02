@@ -20,16 +20,49 @@ type Props = {
   onDeleteSet: (setId: string) => void
   onDeleteExercise: () => void
   readonly?: boolean
+  reorderMode?: boolean
+  canMoveUp?: boolean
+  canMoveDown?: boolean
+  onMoveUp?: () => void
+  onMoveDown?: () => void
 }
 
 export default function ExerciseCard({
   exerciseName, muscleGroup, machineSettings, sets,
   onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCycleEffort, onSaveMachineSettings, onAddSet, onDeleteSet, onDeleteExercise,
   readonly,
+  reorderMode, canMoveUp, canMoveDown, onMoveUp, onMoveDown,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const completedCount = sets.filter((s) => s.completed).length
   const isTime = sets[0]?.exercise?.tracking_type === 'time'
+
+  if (reorderMode) {
+    return (
+      <View style={[styles.card, styles.reorderCard]}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.exerciseName}>{exerciseName}</Text>
+          {muscleGroup && <Text style={styles.muscleTag}>{muscleGroup}</Text>}
+        </View>
+        <TouchableOpacity
+          onPress={onMoveUp}
+          disabled={!canMoveUp}
+          style={[styles.reorderBtn, !canMoveUp && styles.reorderBtnDisabled]}
+          hitSlop={6}
+        >
+          <Text style={styles.reorderArrow}>↑</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={onMoveDown}
+          disabled={!canMoveDown}
+          style={[styles.reorderBtn, !canMoveDown && styles.reorderBtnDisabled]}
+          hitSlop={6}
+        >
+          <Text style={styles.reorderArrow}>↓</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
 
   return (
     <View style={styles.card}>
@@ -115,6 +148,22 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.sm,
   },
   headerLeft: { flex: 1 },
+  reorderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
+  },
+  reorderBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: theme.radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background,
+  },
+  reorderBtnDisabled: { opacity: 0.35 },
+  reorderArrow: { fontSize: 18, fontFamily: theme.fonts.bodyBold, color: theme.colors.text },
   removeBtn: {
     width: 24,
     height: 24,
