@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS exercises (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   muscle_group TEXT CHECK (muscle_group IN ('Chest','Back','Legs','Shoulders','Arms','Core','Cardio')),
+  machine_settings TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -129,3 +130,8 @@ UPDATE exercises SET tracking_type = 'time' WHERE name IN ('Treadmill', 'Stairma
 -- Run this block in the Supabase SQL Editor.
 ALTER TABLE workout_sets ADD COLUMN IF NOT EXISTS effort TEXT CHECK (effort IN ('hard','max'));
 ALTER TABLE workout_sets DROP COLUMN IF EXISTS is_warmup;
+
+-- MACHINE SETTINGS
+-- Free-text note per exercise for remembering machine setup (seat height, pad, pin…).
+-- Run this block in the Supabase SQL Editor.
+ALTER TABLE exercises ADD COLUMN IF NOT EXISTS machine_settings TEXT;

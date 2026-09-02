@@ -24,7 +24,7 @@ export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const { session, loading, refetch } = useSession(id)
-  const { exercises, addExercise: createExercise } = useExercises()
+  const { exercises, addExercise: createExercise, updateExercise } = useExercises()
   const [localSets, setLocalSets] = useState<SetState[]>([])
   const [showTimer, setShowTimer] = useState(false)
   const [showAddExercise, setShowAddExercise] = useState(false)
@@ -170,6 +170,14 @@ export default function WorkoutScreen() {
     addExercise(data.id)
   }
 
+  async function saveMachineSettings(exerciseId: string, value: string | null) {
+    setLocalSets((prev) => prev.map((s) =>
+      s.exercise_id === exerciseId
+        ? { ...s, exercise: { ...s.exercise, machine_settings: value } }
+        : s))
+    await updateExercise(exerciseId, { machine_settings: value })
+  }
+
   async function cycleEffort(setId: string) {
     const set = localSets.find((s) => s.id === setId)
     if (!set) return
@@ -310,12 +318,14 @@ export default function WorkoutScreen() {
               key={exerciseId}
               exerciseName={ex?.name ?? 'Unknown'}
               muscleGroup={ex?.muscle_group ?? null}
+              machineSettings={ex?.machine_settings ?? null}
               sets={sets}
               onToggleComplete={toggleComplete}
               onChangeReps={(setId, val) => updateSet(setId, { tempReps: val })}
               onChangeWeight={(setId, val) => updateSet(setId, { tempWeight: val })}
               onChangeDuration={(setId, val) => updateSet(setId, { tempDuration: val })}
               onCycleEffort={cycleEffort}
+              onSaveMachineSettings={(value) => saveMachineSettings(exerciseId, value)}
               onAddSet={() => addSet(exerciseId)}
               onDeleteSet={deleteSet}
               onDeleteExercise={() => confirmDeleteExercise(exerciseId, ex?.name ?? 'this exercise')}

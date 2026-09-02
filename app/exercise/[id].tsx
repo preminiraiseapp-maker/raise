@@ -7,11 +7,12 @@ import { useExerciseHistory } from '@/hooks/useWorkouts'
 import { useExercises } from '@/hooks/useExercises'
 import { epley1RM } from '@/lib/oneRepMax'
 import { LineChart } from 'react-native-gifted-charts'
+import MachineSettings from '@/components/MachineSettings'
 
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const { sets, loading, refetch } = useExerciseHistory(id)
-  const { exercises } = useExercises()
+  const { exercises, updateExercise } = useExercises()
 
   useFocusEffect(useCallback(() => { refetch() }, [refetch]))
 
@@ -65,6 +66,13 @@ export default function ExerciseDetailScreen() {
           <Text style={styles.group}>{exercise.muscle_group}</Text>
         )}
       </View>
+
+      {exercise && (
+        <MachineSettings
+          value={exercise.machine_settings}
+          onSave={(value) => { updateExercise(exercise.id, { machine_settings: value }) }}
+        />
+      )}
 
       {hasStats && (
         <View style={styles.prRow}>
