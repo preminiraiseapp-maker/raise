@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Modal, FlatList, Platform } from 'react-native'
+import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Modal, FlatList, Platform } from 'react-native'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import { format } from 'date-fns'
 import { theme } from '@/constants/theme'
@@ -20,6 +20,7 @@ export default function WorkoutScreen() {
   const [localSets, setLocalSets] = useState<SetState[]>([])
   const [showTimer, setShowTimer] = useState(false)
   const [showAddExercise, setShowAddExercise] = useState(false)
+  const [exerciseSearch, setExerciseSearch] = useState('')
   const [saving, setSaving] = useState(false)
 
   useFocusEffect(useCallback(() => { refetch() }, [refetch]))
@@ -123,6 +124,7 @@ export default function WorkoutScreen() {
 
   async function addExercise(exerciseId: string) {
     setShowAddExercise(false)
+    setExerciseSearch('')
     const exerciseOrder = sortedExerciseIds.length
 
     const { data } = await supabase.from('workout_sets').insert({
@@ -241,6 +243,13 @@ export default function WorkoutScreen() {
   const sessionDate = new Date(session.date + 'T00:00:00')
   const isFuture = sessionDate > today
 
+  const exerciseQuery = exerciseSearch.trim().toLowerCase()
+  const filteredExercises = exerciseQuery
+    ? exercises.filter((e) =>
+        e.name.toLowerCase().includes(exerciseQuery) ||
+        (e.muscle_group?.toLowerCase().includes(exerciseQuery) ?? false))
+    : exercises
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -284,7 +293,7 @@ export default function WorkoutScreen() {
           )
         })}
 
-        <TouchableOpacity style={styles.addExerciseBtn} onPress={() => setShowAddExercise(true)}>
+        <TouchableOpacity style={styles.addExerciseBtn} onPress={() => { setExerciseSearch(''); setShowAddExercise(true) }}>
           <Text style={styles.addExerciseBtnText}>+ Add Exercise</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -316,16 +325,29 @@ export default function WorkoutScreen() {
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => setShowAddExercise(false)}>
           <TouchableOpacity activeOpacity={1} style={styles.exercisePickerCard}>
             <Text style={styles.pickerTitle}>Add Exercise</Text>
+            <TextInput
+              style={styles.pickerSearch}
+              value={exerciseSearch}
+              onChangeText={setExerciseSearch}
+              placeholder="Search exercises…"
+              placeholderTextColor={theme.colors.textMuted}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoFocus
+              returnKeyType="search"
+            />
             <FlatList
-              data={exercises}
+              data={filteredExercises}
               keyExtractor={(e) => e.id}
+              keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
                 <TouchableOpacity style={styles.pickerRow} onPress={() => addExercise(item.id)}>
                   <Text style={styles.pickerName}>{item.name}</Text>
                   {item.muscle_group && <Text style={styles.pickerGroup}>{item.muscle_group}</Text>}
                 </TouchableOpacity>
               )}
-              style={{ maxHeight: 400 }}
+              ListEmptyComponent={<Text style={styles.pickerEmpty}>No exercises match “{exerciseSearch.trim()}”.</Text>}
+              style={{ maxHeight: 420 }}
             />
           </TouchableOpacity>
         </TouchableOpacity>
@@ -376,6 +398,8 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(56,44,34,0.55)', justifyContent: 'flex-end' },
   exercisePickerCard: { backgroundColor: theme.colors.card, borderTopLeftRadius: theme.radius.lg, borderTopRightRadius: theme.radius.lg, padding: theme.spacing.lg, paddingBottom: 40, ...theme.shadow.floating },
   pickerTitle: { fontSize: theme.fontSize.xl, fontFamily: theme.fonts.display, color: theme.colors.text, marginBottom: theme.spacing.md },
+  pickerSearch: { height: 44, backgroundColor: theme.colors.background, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.md, color: theme.colors.text, fontFamily: theme.fonts.body, fontSize: theme.fontSize.md, borderWidth: 1, borderColor: theme.colors.border, marginBottom: theme.spacing.sm },
+  pickerEmpty: { textAlign: 'center', color: theme.colors.textMuted, fontFamily: theme.fonts.body, fontSize: theme.fontSize.sm, paddingVertical: theme.spacing.xl },
   pickerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: theme.spacing.md, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
   pickerName: { fontSize: theme.fontSize.md, fontFamily: theme.fonts.bodyMedium, color: theme.colors.text },
   pickerGroup: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.accent },
