@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useFonts } from 'expo-font'
@@ -11,8 +11,8 @@ import {
 } from '@expo-google-fonts/inter'
 import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif'
 import { ActivityIndicator, View, StatusBar } from 'react-native'
-import { supabase } from '@/lib/supabase'
 import { theme } from '@/constants/theme'
+import { useAuth } from '@/hooks/useAuth'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -21,7 +21,6 @@ export { ErrorBoundary } from 'expo-router'
 export const unstable_settings = { initialRouteName: '(tabs)' }
 
 export default function RootLayout() {
-  const [ready, setReady] = useState(false)
   const [fontsLoaded, fontsError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -32,24 +31,14 @@ export default function RootLayout() {
     InstrumentSerif_400Regular_Italic,
   })
 
-  useEffect(() => {
-    async function init() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        await supabase.auth.signInAnonymously()
-      }
-      setReady(true)
-    }
-    init()
-  }, [])
+  const { isAuthed, loading: authLoading } = useAuth()
+  const ready = (fontsLoaded || fontsError) && !authLoading
 
   useEffect(() => {
-    if (ready && (fontsLoaded || fontsError)) {
-      SplashScreen.hideAsync()
-    }
-  }, [ready, fontsLoaded, fontsError])
+    if (ready) SplashScreen.hideAsync()
+  }, [ready])
 
-  if (!ready || (!fontsLoaded && !fontsError)) {
+  if (!ready) {
     return (
       <View style={{ flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator color={theme.colors.accent} size="large" />
@@ -68,11 +57,16 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: theme.colors.background },
         }}
       >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="workout/[id]" options={{ title: 'Workout', headerBackTitle: 'Back' }} />
-        <Stack.Screen name="workout/new" options={{ title: 'New Session', presentation: 'modal', headerBackTitle: 'Cancel' }} />
-        <Stack.Screen name="exercise/[id]" options={{ title: 'Exercise', headerBackTitle: 'Back' }} />
-        <Stack.Screen name="stats" options={{ title: 'Stats & Progress', headerBackTitle: 'Back' }} />
+        <Stack.Protected guard={isAuthed}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="workout/[id]" options={{ title: 'Workout', headerBackTitle: 'Back' }} />
+          <Stack.Screen name="workout/new" options={{ title: 'New Session', presentation: 'modal', headerBackTitle: 'Cancel' }} />
+          <Stack.Screen name="exercise/[id]" options={{ title: 'Exercise', headerBackTitle: 'Back' }} />
+          <Stack.Screen name="stats" options={{ title: 'Stats & Progress', headerBackTitle: 'Back' }} />
+        </Stack.Protected>
+        <Stack.Protected guard={!isAuthed}>
+          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+        </Stack.Protected>
       </Stack>
     </>
   )
