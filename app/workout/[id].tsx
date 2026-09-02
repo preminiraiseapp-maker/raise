@@ -12,6 +12,12 @@ import type { WorkoutSetWithExercise } from '@/types/database'
 
 type SetState = WorkoutSetWithExercise & { tempReps: string; tempWeight: string; tempDuration: string }
 
+// Capitalise the first letter of each word, leaving the rest as typed so
+// acronyms entered in caps (RDL, OHP) survive.
+function titleCaseName(s: string) {
+  return s.trim().replace(/\S+/g, (w) => w[0].toUpperCase() + w.slice(1))
+}
+
 export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
@@ -141,7 +147,7 @@ export default function WorkoutScreen() {
   }
 
   async function createAndAddExercise() {
-    const name = exerciseSearch.trim()
+    const name = titleCaseName(exerciseSearch)
     if (name.length < 2 || creatingExercise) return
 
     const existing = exercises.find((e) => e.name.toLowerCase() === name.toLowerCase())
@@ -378,7 +384,7 @@ export default function WorkoutScreen() {
                     >
                       {creatingExercise
                         ? <ActivityIndicator color="#FFFFFF" />
-                        : <Text style={styles.pickerCreateBtnText}>+ Create “{exerciseSearch.trim()}”</Text>}
+                        : <Text style={styles.pickerCreateBtnText}>+ Create “{titleCaseName(exerciseSearch)}”</Text>}
                     </TouchableOpacity>
                   )}
                 </View>
