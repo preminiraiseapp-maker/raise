@@ -171,11 +171,19 @@ export default function WorkoutScreen() {
   }
 
   async function saveMachineSettings(exerciseId: string, value: string | null) {
+    const previous = localSets.find((s) => s.exercise_id === exerciseId)?.exercise?.machine_settings ?? null
     setLocalSets((prev) => prev.map((s) =>
       s.exercise_id === exerciseId
         ? { ...s, exercise: { ...s.exercise, machine_settings: value } }
         : s))
-    await updateExercise(exerciseId, { machine_settings: value })
+    const { error } = await updateExercise(exerciseId, { machine_settings: value })
+    if (error) {
+      setLocalSets((prev) => prev.map((s) =>
+        s.exercise_id === exerciseId
+          ? { ...s, exercise: { ...s.exercise, machine_settings: previous } }
+          : s))
+      Alert.alert('Could not save', 'Machine settings were not saved. Check your connection and try again.')
+    }
   }
 
   async function cycleEffort(setId: string) {

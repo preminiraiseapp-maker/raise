@@ -72,9 +72,13 @@ ALTER TABLE workout_sets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE body_weight_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE step_logs ENABLE ROW LEVEL SECURITY;
 
--- Exercises: anyone can read, any authenticated user can insert custom exercises
+-- Exercises: anyone can read; any authenticated user can insert custom exercises
+-- and edit them (name, muscle group, machine settings)
 CREATE POLICY "exercises_read" ON exercises FOR SELECT USING (true);
 CREATE POLICY "exercises_insert" ON exercises FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "exercises_update" ON exercises FOR UPDATE
+  USING (auth.uid() IS NOT NULL)
+  WITH CHECK (auth.uid() IS NOT NULL);
 
 -- Sessions: users own their data
 CREATE POLICY "sessions_all" ON workout_sessions FOR ALL
@@ -109,7 +113,7 @@ CREATE POLICY "step_logs_all" ON step_logs FOR ALL
 -- TABLE GRANTS
 -- RLS policies are only evaluated after the table-level grant check passes.
 -- Supabase normally provisions these automatically; run explicitly in case this project didn't get them.
-GRANT SELECT, INSERT ON public.exercises TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.exercises TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.workout_sessions TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.workout_sets TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.body_weight_logs TO authenticated;
@@ -135,3 +139,11 @@ ALTER TABLE workout_sets DROP COLUMN IF EXISTS is_warmup;
 -- Free-text note per exercise for remembering machine setup (seat height, pad, pin…).
 -- Run this block in the Supabase SQL Editor.
 ALTER TABLE exercises ADD COLUMN IF NOT EXISTS machine_settings TEXT;
+
+-- The original schema only granted SELECT + INSERT on exercises, so editing one
+-- (machine settings, recategorising) was silently blocked. Add UPDATE.
+GRANT UPDATE ON public.exercises TO authenticated;
+DROP POLICY IF EXISTS "exercises_update" ON exercises;
+CREATE POLICY "exercises_update" ON exercises FOR UPDATE
+  USING (auth.uid() IS NOT NULL)
+  WITH CHECK (auth.uid() IS NOT NULL);

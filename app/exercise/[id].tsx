@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native'
 import { useLocalSearchParams, useFocusEffect } from 'expo-router'
 import { format } from 'date-fns'
 import { theme } from '@/constants/theme'
@@ -70,7 +70,10 @@ export default function ExerciseDetailScreen() {
       {exercise && (
         <MachineSettings
           value={exercise.machine_settings}
-          onSave={(value) => { updateExercise(exercise.id, { machine_settings: value }) }}
+          onSave={async (value) => {
+            const { error } = await updateExercise(exercise.id, { machine_settings: value })
+            if (error) Alert.alert('Could not save', 'Machine settings were not saved. Check your connection and try again.')
+          }}
         />
       )}
 
