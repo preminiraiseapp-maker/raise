@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Stack } from 'expo-router'
+import { Stack, useRouter } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useFonts } from 'expo-font'
 import {
@@ -10,7 +10,7 @@ import {
   Inter_800ExtraBold,
 } from '@expo-google-fonts/inter'
 import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif'
-import { ActivityIndicator, View, StatusBar } from 'react-native'
+import { ActivityIndicator, View, StatusBar, TouchableOpacity, Text } from 'react-native'
 import { theme } from '@/constants/theme'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -19,6 +19,17 @@ SplashScreen.preventAutoHideAsync()
 export { ErrorBoundary } from 'expo-router'
 
 export const unstable_settings = { initialRouteName: '(tabs)' }
+
+function HomeButton() {
+  const router = useRouter()
+  return (
+    <TouchableOpacity onPress={() => router.navigate('/(tabs)')} hitSlop={10} accessibilityLabel="Go to This Week">
+      <Text style={{ color: theme.colors.accent, fontSize: theme.fontSize.md, fontFamily: theme.fonts.bodySemiBold }}>
+        Home
+      </Text>
+    </TouchableOpacity>
+  )
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontsError] = useFonts({
@@ -55,6 +66,7 @@ export default function RootLayout() {
           headerTintColor: theme.colors.text,
           headerShadowVisible: false,
           contentStyle: { backgroundColor: theme.colors.background },
+          headerRight: () => <HomeButton />,
         }}
       >
         <Stack.Protected guard={isAuthed}>
