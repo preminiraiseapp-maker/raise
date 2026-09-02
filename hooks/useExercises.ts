@@ -30,5 +30,21 @@ export function useExercises() {
     return { data, error }
   }
 
-  return { exercises, loading, refetch: fetch, addExercise }
+  async function updateExercise(
+    id: string,
+    patch: Partial<Pick<Exercise, 'name' | 'muscle_group' | 'machine_settings'>>,
+  ) {
+    const { data, error } = await supabase
+      .from('exercises')
+      .update(patch)
+      .eq('id', id)
+      .select()
+      .single()
+    if (!error && data) {
+      setExercises((prev) => prev.map((e) => (e.id === id ? data : e)))
+    }
+    return { data, error }
+  }
+
+  return { exercises, loading, refetch: fetch, addExercise, updateExercise }
 }

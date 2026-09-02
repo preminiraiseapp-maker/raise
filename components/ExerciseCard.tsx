@@ -2,17 +2,20 @@ import { useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { theme } from '@/constants/theme'
 import SetRow from './SetRow'
+import MachineSettings from './MachineSettings'
 import type { WorkoutSetWithExercise } from '@/types/database'
 
 type Props = {
   exerciseName: string
   muscleGroup: string | null
+  machineSettings: string | null
   sets: (WorkoutSetWithExercise & { tempReps?: string; tempWeight?: string; tempDuration?: string })[]
   onToggleComplete: (setId: string) => void
   onChangeReps: (setId: string, val: string) => void
   onChangeWeight: (setId: string, val: string) => void
   onChangeDuration: (setId: string, val: string) => void
   onCycleEffort: (setId: string) => void
+  onSaveMachineSettings: (value: string | null) => void
   onAddSet: () => void
   onDeleteSet: (setId: string) => void
   onDeleteExercise: () => void
@@ -20,8 +23,8 @@ type Props = {
 }
 
 export default function ExerciseCard({
-  exerciseName, muscleGroup, sets,
-  onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCycleEffort, onAddSet, onDeleteSet, onDeleteExercise,
+  exerciseName, muscleGroup, machineSettings, sets,
+  onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCycleEffort, onSaveMachineSettings, onAddSet, onDeleteSet, onDeleteExercise,
   readonly,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false)
@@ -46,6 +49,10 @@ export default function ExerciseCard({
           </TouchableOpacity>
         )}
       </View>
+
+      {(!collapsed || machineSettings) && (
+        <MachineSettings value={machineSettings} onSave={onSaveMachineSettings} readonly={readonly} compact />
+      )}
 
       {!collapsed && (
         <>

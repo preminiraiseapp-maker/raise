@@ -11,6 +11,7 @@ export interface Exercise {
   name: string
   muscle_group: MuscleGroup | null
   tracking_type: TrackingType
+  machine_settings: string | null
   created_at: string
 }
 
