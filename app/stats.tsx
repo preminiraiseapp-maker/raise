@@ -4,6 +4,8 @@ import { format } from 'date-fns'
 import { theme } from '@/constants/theme'
 import { useBodyWeight } from '@/hooks/useBodyWeight'
 import { useSteps } from '@/hooks/useSteps'
+import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
 import { LineChart } from 'react-native-gifted-charts'
 
 export default function StatsScreen() {
@@ -13,6 +15,20 @@ export default function StatsScreen() {
 
   const { logs: stepLogs, loading: stepsLoading, logSteps } = useSteps(6)
   const [newSteps, setNewSteps] = useState('')
+
+  const { session } = useAuth()
+
+  function signOut() {
+    const msg = 'Sign out? Your data stays synced and you can sign back in with the same email.'
+    if (Platform.OS === 'web') {
+      if (window.confirm(msg)) supabase.auth.signOut()
+      return
+    }
+    Alert.alert('Sign Out?', msg, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign Out', style: 'destructive', onPress: () => { supabase.auth.signOut() } },
+    ])
+  }
 
   async function handleLog() {
     const w = parseFloat(newWeight)
@@ -222,6 +238,16 @@ export default function StatsScreen() {
           </View>
         )}
       </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Account</Text>
+        {session?.user.email && (
+          <Text style={styles.accountEmail}>{session.user.email}</Text>
+        )}
+        <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
+          <Text style={styles.signOutBtnText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   )
 }
@@ -256,4 +282,7 @@ const styles = StyleSheet.create({
   logRight: { alignItems: 'flex-end' },
   logWeight: { fontSize: theme.fontSize.md, fontWeight: '700', color: theme.colors.secondary },
   logSource: { fontSize: theme.fontSize.xs, color: theme.colors.textMuted },
+  accountEmail: { fontSize: theme.fontSize.md, fontFamily: theme.fonts.bodyMedium, color: theme.colors.text, marginBottom: theme.spacing.md },
+  signOutBtn: { height: 44, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.border, alignItems: 'center', justifyContent: 'center' },
+  signOutBtnText: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.danger },
 })
