@@ -127,7 +127,7 @@ ALTER TABLE exercises ADD COLUMN IF NOT EXISTS tracking_type TEXT NOT NULL DEFAU
 ALTER TABLE workout_sets ADD COLUMN IF NOT EXISTS planned_duration_minutes NUMERIC(6,2);
 ALTER TABLE workout_sets ADD COLUMN IF NOT EXISTS actual_duration_minutes NUMERIC(6,2);
 
-UPDATE exercises SET tracking_type = 'time' WHERE name IN ('Treadmill', 'Stairmaster');
+UPDATE exercises SET tracking_type = 'time' WHERE muscle_group = 'Cardio';
 
 -- SET EFFORT MARKER
 -- Replaces the old is_warmup flag. Tag a set as 'hard' or 'max' effort after logging it.
@@ -147,3 +147,8 @@ DROP POLICY IF EXISTS "exercises_update" ON exercises;
 CREATE POLICY "exercises_update" ON exercises FOR UPDATE
   USING (auth.uid() IS NOT NULL)
   WITH CHECK (auth.uid() IS NOT NULL);
+
+-- ALL CARDIO IS TIME-TRACKED
+-- Every cardio exercise (not just Treadmill/Stairmaster) is tracked by duration.
+-- Run this block in the Supabase SQL Editor.
+UPDATE exercises SET tracking_type = 'time' WHERE muscle_group = 'Cardio';
