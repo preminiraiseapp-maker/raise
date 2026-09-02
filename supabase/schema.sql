@@ -152,3 +152,8 @@ CREATE POLICY "exercises_update" ON exercises FOR UPDATE
 -- Every cardio exercise (not just Treadmill/Stairmaster) is tracked by duration.
 -- Run this block in the Supabase SQL Editor.
 UPDATE exercises SET tracking_type = 'time' WHERE muscle_group = 'Cardio';
+
+-- PLANKS ARE TIME-TRACKED
+-- Any exercise with "plank" in the name is a hold, so track it by duration.
+-- Run this block in the Supabase SQL Editor.
+UPDATE exercises SET tracking_type = 'time' WHERE name ILIKE '%plank%';
