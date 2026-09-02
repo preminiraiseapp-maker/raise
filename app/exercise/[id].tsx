@@ -8,6 +8,7 @@ import { useExercises } from '@/hooks/useExercises'
 import { epley1RM } from '@/lib/oneRepMax'
 import { LineChart } from 'react-native-gifted-charts'
 import MachineSettings from '@/components/MachineSettings'
+import { MUSCLE_GROUPS } from '@/types/database'
 
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -62,19 +63,39 @@ export default function ExerciseDetailScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text style={styles.name}>{exercise?.name ?? 'Exercise'}</Text>
-        {exercise?.muscle_group && (
-          <Text style={styles.group}>{exercise.muscle_group}</Text>
-        )}
       </View>
 
       {exercise && (
-        <MachineSettings
-          value={exercise.machine_settings}
-          onSave={async (value) => {
-            const { error } = await updateExercise(exercise.id, { machine_settings: value })
-            if (error) Alert.alert('Could not save', 'Machine settings were not saved. Check your connection and try again.')
-          }}
-        />
+        <>
+          <View style={styles.groupCard}>
+            <Text style={styles.groupLabel}>Muscle group</Text>
+            <View style={styles.groupChips}>
+              {MUSCLE_GROUPS.map((g) => {
+                const active = exercise.muscle_group === g
+                return (
+                  <TouchableOpacity
+                    key={g}
+                    style={[styles.groupChip, active && styles.groupChipActive]}
+                    onPress={async () => {
+                      const { error } = await updateExercise(exercise.id, { muscle_group: active ? null : g })
+                      if (error) Alert.alert('Could not save', 'Muscle group was not saved. Check your connection and try again.')
+                    }}
+                  >
+                    <Text style={[styles.groupChipText, active && styles.groupChipTextActive]}>{g}</Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          </View>
+
+          <MachineSettings
+            value={exercise.machine_settings}
+            onSave={async (value) => {
+              const { error } = await updateExercise(exercise.id, { machine_settings: value })
+              if (error) Alert.alert('Could not save', 'Machine settings were not saved. Check your connection and try again.')
+            }}
+          />
+        </>
       )}
 
       {hasStats && (
@@ -177,7 +198,27 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 40 },
   header: { paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.lg, paddingBottom: theme.spacing.md },
   name: { fontSize: theme.fontSize.xxl, fontFamily: theme.fonts.display, color: theme.colors.text },
-  group: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodySemiBold, color: theme.colors.accent, marginTop: 4, textTransform: 'uppercase', letterSpacing: 1 },
+  groupCard: {
+    marginHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.md,
+    ...theme.shadow.soft,
+  },
+  groupLabel: {
+    fontSize: theme.fontSize.xs,
+    fontFamily: theme.fonts.bodySemiBold,
+    color: theme.colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: theme.spacing.sm,
+  },
+  groupChips: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
+  groupChip: { paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.xs, borderRadius: theme.radius.full, borderWidth: 1, borderColor: theme.colors.border },
+  groupChipActive: { borderColor: theme.colors.accent, backgroundColor: `${theme.colors.accent}22` },
+  groupChipText: { fontSize: theme.fontSize.sm, fontFamily: theme.fonts.bodyMedium, color: theme.colors.textMuted },
+  groupChipTextActive: { color: theme.colors.accent, fontFamily: theme.fonts.bodySemiBold },
   prRow: { flexDirection: 'row', gap: theme.spacing.sm, paddingHorizontal: theme.spacing.md, marginBottom: theme.spacing.lg },
   prCard: { flex: 1, backgroundColor: theme.colors.card, borderRadius: theme.radius.md, padding: theme.spacing.md, alignItems: 'center', ...theme.shadow.soft },
   prLabel: { fontSize: theme.fontSize.xs, fontFamily: theme.fonts.bodyMedium, color: theme.colors.textMuted, marginBottom: 4 },

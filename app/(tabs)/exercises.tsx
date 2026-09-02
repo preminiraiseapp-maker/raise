@@ -3,9 +3,7 @@ import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert,
 import { useRouter } from 'expo-router'
 import { theme } from '@/constants/theme'
 import { useExercises } from '@/hooks/useExercises'
-import type { MuscleGroup } from '@/types/database'
-
-const MUSCLE_GROUPS: MuscleGroup[] = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio']
+import { MUSCLE_GROUPS, type MuscleGroup } from '@/types/database'
 
 export default function ExercisesScreen() {
   const router = useRouter()

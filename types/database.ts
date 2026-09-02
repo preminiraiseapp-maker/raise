@@ -1,4 +1,8 @@
-export type MuscleGroup = 'Chest' | 'Back' | 'Legs' | 'Shoulders' | 'Arms' | 'Core' | 'Cardio'
+export const MUSCLE_GROUPS = [
+  'Chest', 'Back', 'Legs', 'Glutes', 'Shoulders', 'Arms', 'Core', 'Cardio',
+] as const
+
+export type MuscleGroup = (typeof MUSCLE_GROUPS)[number]
 
 export type SessionStatus = 'planned' | 'completed'
 
