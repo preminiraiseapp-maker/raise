@@ -21,7 +21,11 @@ export function useExercises() {
   async function addExercise(name: string, muscleGroup: MuscleGroup | null) {
     const { data, error } = await supabase
       .from('exercises')
-      .insert({ name, muscle_group: muscleGroup })
+      .insert({
+        name,
+        muscle_group: muscleGroup,
+        tracking_type: muscleGroup === 'Cardio' ? 'time' : 'reps_weight',
+      })
       .select()
       .single()
     if (!error && data) {
