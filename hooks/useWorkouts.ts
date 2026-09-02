@@ -82,7 +82,6 @@ export function useExerciseHistory(exerciseId: string) {
       .eq('exercise_id', exerciseId)
       .eq('session.user_id', userId)
       .eq('session.status', 'completed')
-      .eq('is_warmup', false)
       .order('created_at', { ascending: false })
       .limit(100)
     if (error) console.error('useExerciseHistory:', error.message)

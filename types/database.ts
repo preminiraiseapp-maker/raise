@@ -4,6 +4,8 @@ export type SessionStatus = 'planned' | 'completed'
 
 export type TrackingType = 'reps_weight' | 'time'
 
+export type SetEffort = 'hard' | 'max'
+
 export interface Exercise {
   id: string
   name: string
@@ -28,7 +30,7 @@ export interface WorkoutSet {
   exercise_id: string
   exercise_order: number
   set_number: number
-  is_warmup: boolean
+  effort: SetEffort | null
   planned_reps: number | null
   planned_weight: number | null
   actual_reps: number | null
