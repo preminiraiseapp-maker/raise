@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS workout_sets (
   exercise_id UUID NOT NULL REFERENCES exercises(id) ON DELETE RESTRICT,
   exercise_order INTEGER NOT NULL DEFAULT 0,
   set_number INTEGER NOT NULL DEFAULT 1,
-  is_warmup BOOLEAN NOT NULL DEFAULT FALSE,
+  effort TEXT CHECK (effort IN ('hard','max')),
   planned_reps INTEGER,
   planned_weight NUMERIC(6,2),
   actual_reps INTEGER,
@@ -123,3 +123,9 @@ ALTER TABLE workout_sets ADD COLUMN IF NOT EXISTS planned_duration_minutes NUMER
 ALTER TABLE workout_sets ADD COLUMN IF NOT EXISTS actual_duration_minutes NUMERIC(6,2);
 
 UPDATE exercises SET tracking_type = 'time' WHERE name IN ('Treadmill', 'Stairmaster');
+
+-- SET EFFORT MARKER
+-- Replaces the old is_warmup flag. Tag a set as 'hard' or 'max' effort after logging it.
+-- Run this block in the Supabase SQL Editor.
+ALTER TABLE workout_sets ADD COLUMN IF NOT EXISTS effort TEXT CHECK (effort IN ('hard','max'));
+ALTER TABLE workout_sets DROP COLUMN IF EXISTS is_warmup;

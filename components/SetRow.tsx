@@ -10,13 +10,15 @@ type Props = {
   onChangeReps: (val: string) => void
   onChangeWeight: (val: string) => void
   onChangeDuration: (val: string) => void
-  onToggleWarmup: () => void
+  onCycleEffort: () => void
   onDelete: () => void
   readonly?: boolean
 }
 
+const EFFORT_LABEL = { hard: 'H', max: 'M' } as const
+
 export default function SetRow({
-  set, onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onToggleWarmup, onDelete, readonly,
+  set, onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCycleEffort, onDelete, readonly,
 }: Props) {
   const isTime = set.exercise?.tracking_type === 'time'
   const reps = set.actual_reps ?? set.planned_reps
@@ -29,13 +31,24 @@ export default function SetRow({
   }
 
   return (
-    <View style={[styles.row, set.is_warmup && styles.rowWarmup, set.completed && styles.rowCompleted]}>
+    <View style={[
+      styles.row,
+      set.effort === 'hard' && styles.rowHard,
+      set.effort === 'max' && styles.rowMax,
+      set.completed && styles.rowCompleted,
+    ]}>
       <TouchableOpacity
-        onPress={onToggleWarmup}
-        style={[styles.warmupBtn, set.is_warmup && styles.warmupBtnActive]}
+        onPress={onCycleEffort}
+        style={[
+          styles.effortBtn,
+          set.effort === 'hard' && styles.effortBtnHard,
+          set.effort === 'max' && styles.effortBtnMax,
+        ]}
         disabled={readonly}
       >
-        <Text style={[styles.warmupText, set.is_warmup && styles.warmupTextActive]}>W</Text>
+        <Text style={[styles.effortText, set.effort && styles.effortTextActive]}>
+          {set.effort ? EFFORT_LABEL[set.effort] : '–'}
+        </Text>
       </TouchableOpacity>
 
       <Text style={styles.setNum}>{set.set_number}</Text>
@@ -126,9 +139,10 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
     marginBottom: 4,
   },
-  rowWarmup: { backgroundColor: `${theme.colors.caramel}17` },
+  rowHard: { backgroundColor: `${theme.colors.caramel}17` },
+  rowMax: { backgroundColor: `${theme.colors.danger}14` },
   rowCompleted: { backgroundColor: `${theme.colors.secondary}1c` },
-  warmupBtn: {
+  effortBtn: {
     width: 26,
     height: 26,
     borderRadius: 13,
@@ -136,9 +150,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  warmupBtnActive: { backgroundColor: theme.colors.caramel },
-  warmupText: { fontSize: 11, fontFamily: theme.fonts.bodyBold, color: theme.colors.textMuted },
-  warmupTextActive: { color: '#FFFFFF' },
+  effortBtnHard: { backgroundColor: theme.colors.caramel },
+  effortBtnMax: { backgroundColor: theme.colors.danger },
+  effortText: { fontSize: 11, fontFamily: theme.fonts.bodyBold, color: theme.colors.textMuted },
+  effortTextActive: { color: '#FFFFFF' },
   setNum: {
     width: 18,
     fontSize: theme.fontSize.sm,

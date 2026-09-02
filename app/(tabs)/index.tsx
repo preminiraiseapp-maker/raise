@@ -30,9 +30,9 @@ export default function ThisWeekScreen() {
   const todaySession = sessions.find((s) => s.date === todayStr) ?? null
 
   const completed = sessions.filter((s) => s.status === 'completed')
-  const totalSets = completed.reduce((acc, s) => acc + (s.workout_sets?.filter((w) => !w.is_warmup).length ?? 0), 0)
+  const totalSets = completed.reduce((acc, s) => acc + (s.workout_sets?.length ?? 0), 0)
   const totalVolume = completed.reduce((acc, s) =>
-    acc + (s.workout_sets?.filter((w) => !w.is_warmup && w.actual_weight && w.actual_reps)
+    acc + (s.workout_sets?.filter((w) => w.actual_weight && w.actual_reps)
       .reduce((a, w) => a + (w.actual_weight! * w.actual_reps!), 0) ?? 0), 0)
 
   const weekProgress = sessions.length > 0 ? completed.length / sessions.length : 0
@@ -104,7 +104,7 @@ export default function ThisWeekScreen() {
 
           <View style={styles.summaryRow}>
             <SummaryChip label="Sessions" value={String(completed.length)} />
-            <SummaryChip label="Working Sets" value={String(totalSets)} />
+            <SummaryChip label="Sets" value={String(totalSets)} />
             <SummaryChip label="Volume" value={`${Math.round(totalVolume / 1000)}k kg`} />
           </View>
         </>
