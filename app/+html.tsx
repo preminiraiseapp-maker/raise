@@ -28,11 +28,11 @@ export default function Root({ children }: { children: ReactNode }) {
         {/* Using raw CSS styles as an escape-hatch to ensure the background color never flickers in dark-mode. */}
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
         {/*
-          Pin the app shell to the *visible* viewport. iOS Safari resolves 100%/100vh
-          to the toolbar-hidden height, so the bottom of the page (the tab bar) ends up
-          behind the floating toolbar. 100dvh tracks the visible area instead.
+          Keep the app shell exactly as tall as the visible viewport so the
+          bottom tab bar never ends up behind the mobile browser toolbar.
         */}
         <style dangerouslySetInnerHTML={{ __html: viewportFix }} />
+        <script dangerouslySetInnerHTML={{ __html: appHeightScript }} />
         {/* Add any additional <head> elements that you want globally available on web... */}
       </head>
       <body>{children}</body>
@@ -51,7 +51,32 @@ body {
 }`;
 
 const viewportFix = `
+/* iOS Safari resolves 100%/100vh to the toolbar-hidden height, so the bottom
+   of the page renders behind the floating toolbar. --app-h is set from
+   window.innerHeight (the true visible height) by the script below; 100dvh is
+   the fallback until it runs / on browsers without the script. */
 html, body, #root {
   height: 100vh;
   height: 100dvh;
+  height: var(--app-h, 100dvh);
+}
+
+/* Bottom tab bar = the element wrapping the role="tablist" row. Guarantee it's
+   tall enough and padded enough that the labels clear the home indicator and
+   any browser toolbar, whatever the JS safe-area value works out to. */
+:has(> [role="tablist"]) {
+  box-sizing: border-box !important;
+  min-height: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px) !important;
 }`;
+
+const appHeightScript = `
+(function () {
+  function set() {
+    document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+  }
+  set();
+  window.addEventListener('resize', set);
+  window.addEventListener('orientationchange', set);
+  window.addEventListener('pageshow', set);
+})();`;
