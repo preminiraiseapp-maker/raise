@@ -13,8 +13,9 @@ export default function TabLayout() {
           backgroundColor: theme.colors.tabBar,
           borderTopColor: theme.colors.tabBarBorder,
           borderTopWidth: 1,
+          paddingHorizontal: theme.spacing.sm,
         },
-        tabBarLabelStyle: { fontSize: 11 },
+        tabBarLabelStyle: { fontSize: 10 },
         headerStyle: { backgroundColor: theme.colors.background },
         headerTintColor: theme.colors.text,
         headerShadowVisible: false,
@@ -25,6 +26,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'This Week',
+          tabBarLabel: 'Home',
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <SymbolView name={{ ios: 'house.fill', android: 'home', web: 'home' }} tintColor={color} size={22} />
