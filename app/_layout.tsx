@@ -23,7 +23,12 @@ export const unstable_settings = { initialRouteName: '(tabs)' }
 function HomeButton() {
   const router = useRouter()
   return (
-    <TouchableOpacity onPress={() => router.navigate('/(tabs)')} hitSlop={10} accessibilityLabel="Go to This Week">
+    <TouchableOpacity
+      onPress={() => router.navigate('/(tabs)')}
+      hitSlop={10}
+      accessibilityLabel="Go to This Week"
+      style={{ paddingLeft: theme.spacing.md, paddingRight: theme.spacing.sm }}
+    >
       <Text style={{ color: theme.colors.accent, fontSize: theme.fontSize.md, fontFamily: theme.fonts.bodySemiBold }}>
         Home
       </Text>

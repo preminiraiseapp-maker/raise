@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Modal, FlatList, Platform } from 'react-native'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { format } from 'date-fns'
 import { theme } from '@/constants/theme'
 import { useSession } from '@/hooks/useWorkouts'
@@ -21,6 +22,7 @@ function titleCaseName(s: string) {
 export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const { session, loading, refetch } = useSession(id)
   const { exercises, addExercise: createExercise, updateExercise } = useExercises()
   const [localSets, setLocalSets] = useState<SetState[]>([])
@@ -322,7 +324,7 @@ export default function WorkoutScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 + insets.bottom }]}>
         <View style={styles.sessionHeader}>
           <View style={styles.sessionHeaderTop}>
             <View style={{ flex: 1 }}>
@@ -385,7 +387,7 @@ export default function WorkoutScreen() {
       </ScrollView>
 
       {!isFuture && (
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: theme.spacing.md + insets.bottom }]}>
           {isCompleted ? (
             <TouchableOpacity style={styles.reopenBtn} onPress={reopenWorkout}>
               <Text style={styles.reopenBtnText}>Reopen Workout</Text>
