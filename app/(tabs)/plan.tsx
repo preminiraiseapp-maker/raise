@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
-import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns'
+import { format, startOfWeek, endOfWeek, addWeeks } from 'date-fns'
 import { theme } from '@/constants/theme'
 import { useNextWeek } from '@/hooks/useWeek'
 import { useWeekWorkouts } from '@/hooks/useWorkouts'
@@ -16,30 +16,31 @@ export default function PlanScreen() {
 
   useFocusEffect(useCallback(() => { refetch() }, [refetch]))
 
-  async function copyLastWeek() {
+  async function copyThisWeek() {
     const userId = await getUserId()
     if (!userId) return
 
     setCopying(true)
     try {
-      const lastWeekStart = format(startOfWeek(subWeeks(new Date(), 1), { weekStartsOn: 1 }), 'yyyy-MM-dd')
-      const lastWeekEnd = format(endOfWeek(subWeeks(new Date(), 1), { weekStartsOn: 1 }), 'yyyy-MM-dd')
+      // Source is the *current* week; each session is shifted +1 week so it
+      // lands in the next week shown on this screen.
+      const thisWeekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
+      const thisWeekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
 
-      const { data: lastSessions } = await supabase
+      const { data: sourceSessions } = await supabase
         .from('workout_sessions')
         .select('*, workout_sets(*)')
         .eq('user_id', userId)
-        .gte('date', lastWeekStart)
-        .lte('date', lastWeekEnd)
+        .gte('date', thisWeekStart)
+        .lte('date', thisWeekEnd)
 
-      if (!lastSessions || lastSessions.length === 0) {
-        Alert.alert('Nothing to copy', 'No sessions found from last week.')
+      if (!sourceSessions || sourceSessions.length === 0) {
+        Alert.alert('Nothing to copy', 'No sessions found for this week.')
         return
       }
 
-      // Map last week's dates to next week
-      const dayOffset = 7
-      for (const session of lastSessions) {
+      let copied = 0
+      for (const session of sourceSessions) {
         const newDate = format(addWeeks(new Date(session.date + 'T00:00:00'), 1), 'yyyy-MM-dd')
 
         // Skip if a session already exists for this date
@@ -52,6 +53,7 @@ export default function PlanScreen() {
           .single()
 
         if (!newSession) continue
+        copied++
 
         if (session.workout_sets?.length > 0) {
           await supabase.from('workout_sets').insert(
@@ -69,7 +71,12 @@ export default function PlanScreen() {
       }
 
       refetch()
-      Alert.alert('Done!', `Copied ${lastSessions.length} session${lastSessions.length > 1 ? 's' : ''} to next week.`)
+      Alert.alert(
+        copied > 0 ? 'Done!' : 'Already planned',
+        copied > 0
+          ? `Copied ${copied} session${copied > 1 ? 's' : ''} to next week.`
+          : 'Next week already has sessions on those days.',
+      )
     } finally {
       setCopying(false)
     }
@@ -86,12 +93,12 @@ export default function PlanScreen() {
         </View>
         <TouchableOpacity
           style={[styles.copyBtn, copying && styles.copyBtnDisabled]}
-          onPress={copyLastWeek}
+          onPress={copyThisWeek}
           disabled={copying}
         >
           {copying
             ? <ActivityIndicator size="small" color={theme.colors.accent} />
-            : <Text style={styles.copyBtnText}>Copy Last Week</Text>
+            : <Text style={styles.copyBtnText}>Copy This Week</Text>
           }
         </TouchableOpacity>
       </View>
@@ -115,7 +122,7 @@ export default function PlanScreen() {
           {sessions.length === 0 && (
             <View style={styles.empty}>
               <Text style={styles.emptyText}>No sessions planned yet.</Text>
-              <Text style={styles.emptyHint}>Tap a day above or copy last week to get started.</Text>
+              <Text style={styles.emptyHint}>Tap a day above or copy this week to get started.</Text>
             </View>
           )}
         </>
