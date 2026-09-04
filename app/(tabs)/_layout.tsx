@@ -1,9 +1,12 @@
 import { Tabs } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { theme } from '@/constants/theme'
 import { useClientOnlyValue } from '@/components/useClientOnlyValue'
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets()
+
   return (
     <Tabs
       screenOptions={{
@@ -14,9 +17,14 @@ export default function TabLayout() {
           borderTopColor: theme.colors.tabBarBorder,
           borderTopWidth: 1,
           paddingHorizontal: theme.spacing.sm,
+          // Taller bar + generous bottom padding so the labels (descenders
+          // included) clear the home indicator and the floating mobile
+          // Safari toolbar that overlaps the bottom of the page.
+          height: 64 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: insets.bottom + 12,
         },
-        // explicit lineHeight keeps descenders (the "y" in History) from clipping on web
-        tabBarLabelStyle: { fontSize: 10, lineHeight: 15 },
+        tabBarLabelStyle: { fontSize: 10, lineHeight: 14 },
         headerStyle: { backgroundColor: theme.colors.background },
         headerTintColor: theme.colors.text,
         headerShadowVisible: false,
