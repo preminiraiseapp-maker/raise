@@ -15,7 +15,8 @@ export default function TabLayout() {
           borderTopWidth: 1,
           paddingHorizontal: theme.spacing.sm,
         },
-        tabBarLabelStyle: { fontSize: 10 },
+        // explicit lineHeight keeps descenders (the "y" in History) from clipping on web
+        tabBarLabelStyle: { fontSize: 10, lineHeight: 15 },
         headerStyle: { backgroundColor: theme.colors.background },
         headerTintColor: theme.colors.text,
         headerShadowVisible: false,
