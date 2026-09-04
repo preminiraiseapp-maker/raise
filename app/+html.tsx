@@ -59,15 +59,6 @@ html, body, #root {
   height: 100vh;
   height: 100dvh;
   height: var(--app-h, 100dvh);
-}
-
-/* Bottom tab bar = the element wrapping the role="tablist" row. Guarantee it's
-   tall enough and padded enough that the labels clear the home indicator and
-   any browser toolbar, whatever the JS safe-area value works out to. */
-:has(> [role="tablist"]) {
-  box-sizing: border-box !important;
-  min-height: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px) !important;
 }`;
 
 const appHeightScript = `

@@ -1,9 +1,12 @@
 import { Tabs } from 'expo-router'
 import { SymbolView } from 'expo-symbols'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { theme } from '@/constants/theme'
 import { useClientOnlyValue } from '@/components/useClientOnlyValue'
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets()
+
   return (
     <Tabs
       screenOptions={{
@@ -14,8 +17,14 @@ export default function TabLayout() {
           borderTopColor: theme.colors.tabBarBorder,
           borderTopWidth: 1,
           paddingHorizontal: theme.spacing.sm,
+          // The default bar (49px) is too short for the icon + label stack, so
+          // the label's descenders get clipped on web. Give the row real height;
+          // the bar adds `insets.bottom` as padding on top of this itself.
+          height: 62 + insets.bottom,
+          paddingTop: 2,
         },
-        tabBarLabelStyle: { fontSize: 10, lineHeight: 15 },
+        tabBarItemStyle: { paddingVertical: 4 },
+        tabBarLabelStyle: { fontSize: 10, lineHeight: 14, paddingBottom: 2 },
         headerStyle: { backgroundColor: theme.colors.background },
         headerTintColor: theme.colors.text,
         headerShadowVisible: false,
