@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useFocusEffect } from 'expo-router'
 import { format } from 'date-fns'
 import { theme } from '@/constants/theme'
@@ -12,6 +13,7 @@ import { MUSCLE_GROUPS } from '@/types/database'
 
 export default function ExerciseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const insets = useSafeAreaInsets()
   const { sets, loading, refetch } = useExerciseHistory(id)
   const { exercises, updateExercise } = useExercises()
 
@@ -60,7 +62,7 @@ export default function ExerciseDetailScreen() {
   const hasStats = isTime ? longestSession > 0 : pr > 0
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]}>
       <View style={styles.header}>
         <Text style={styles.name}>{exercise?.name ?? 'Exercise'}</Text>
       </View>

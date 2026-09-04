@@ -1,4 +1,5 @@
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useCallback, useMemo } from 'react'
 import { format } from 'date-fns'
@@ -20,6 +21,7 @@ function getGreeting() {
 
 export default function ThisWeekScreen() {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const days = useCurrentWeek()
   const { sessions, loading, refetch } = useWeekWorkouts(days[0].dateStr, days[6].dateStr)
 
@@ -38,7 +40,7 @@ export default function ThisWeekScreen() {
   const weekProgress = sessions.length > 0 ? completed.length / sessions.length : 0
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>{greeting}</Text>

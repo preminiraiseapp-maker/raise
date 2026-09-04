@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform, ActivityIndicator } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { format } from 'date-fns'
 import { theme } from '@/constants/theme'
 import { useBodyWeight } from '@/hooks/useBodyWeight'
@@ -9,6 +10,7 @@ import { supabase } from '@/lib/supabase'
 import { LineChart } from 'react-native-gifted-charts'
 
 export default function StatsScreen() {
+  const insets = useSafeAreaInsets()
   const { logs, loading, logWeight, syncFromHealthKit } = useBodyWeight(6)
   const [newWeight, setNewWeight] = useState('')
   const [syncing, setSyncing] = useState(false)
@@ -77,7 +79,7 @@ export default function StatsScreen() {
   const latestSteps = stepLogs[stepLogs.length - 1]
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: 60 + insets.bottom }]}>
       <Text style={styles.heading}>Stats & Progress</Text>
 
       <View style={styles.section}>
