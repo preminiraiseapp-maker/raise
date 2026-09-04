@@ -27,6 +27,12 @@ export default function Root({ children }: { children: ReactNode }) {
 
         {/* Using raw CSS styles as an escape-hatch to ensure the background color never flickers in dark-mode. */}
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
+        {/*
+          Pin the app shell to the *visible* viewport. iOS Safari resolves 100%/100vh
+          to the toolbar-hidden height, so the bottom of the page (the tab bar) ends up
+          behind the floating toolbar. 100dvh tracks the visible area instead.
+        */}
+        <style dangerouslySetInnerHTML={{ __html: viewportFix }} />
         {/* Add any additional <head> elements that you want globally available on web... */}
       </head>
       <body>{children}</body>
@@ -42,4 +48,10 @@ body {
   body {
     background-color: #000;
   }
+}`;
+
+const viewportFix = `
+html, body, #root {
+  height: 100vh;
+  height: 100dvh;
 }`;
