@@ -8,15 +8,20 @@ import { useSteps } from '@/hooks/useSteps'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { LineChart } from 'react-native-gifted-charts'
+import DayPicker, { dayPickerLabel } from '@/components/DayPicker'
+
+const today = () => format(new Date(), 'yyyy-MM-dd')
 
 export default function StatsScreen() {
   const insets = useSafeAreaInsets()
   const { logs, loading, logWeight, syncFromHealthKit } = useBodyWeight(6)
   const [newWeight, setNewWeight] = useState('')
+  const [weightDate, setWeightDate] = useState(today)
   const [syncing, setSyncing] = useState(false)
 
   const { logs: stepLogs, loading: stepsLoading, logSteps } = useSteps(6)
   const [newSteps, setNewSteps] = useState('')
+  const [stepsDate, setStepsDate] = useState(today)
 
   const { session } = useAuth()
 
@@ -38,8 +43,9 @@ export default function StatsScreen() {
       Alert.alert('Invalid weight', 'Enter a weight between 20 and 300 kg.')
       return
     }
-    await logWeight(w, format(new Date(), 'yyyy-MM-dd'))
+    await logWeight(w, weightDate)
     setNewWeight('')
+    setWeightDate(today())
   }
 
   async function handleSync() {
@@ -54,8 +60,9 @@ export default function StatsScreen() {
       Alert.alert('Invalid steps', 'Enter a step count between 0 and 100,000.')
       return
     }
-    await logSteps(s, format(new Date(), 'yyyy-MM-dd'))
+    await logSteps(s, stepsDate)
     setNewSteps('')
+    setStepsDate(today())
   }
 
   const chartData = logs.map((l) => ({
@@ -126,6 +133,9 @@ export default function StatsScreen() {
             />
           </View>
         )}
+
+        <DayPicker selectedDate={weightDate} onSelect={setWeightDate} />
+        <Text style={styles.logForLabel}>Logging for {dayPickerLabel(weightDate)}</Text>
 
         <View style={styles.logRow}>
           <TextInput
@@ -209,6 +219,9 @@ export default function StatsScreen() {
           </View>
         )}
 
+        <DayPicker selectedDate={stepsDate} onSelect={setStepsDate} />
+        <Text style={styles.logForLabel}>Logging for {dayPickerLabel(stepsDate)}</Text>
+
         <View style={styles.logRow}>
           <TextInput
             style={styles.weightInput}
@@ -270,6 +283,7 @@ const styles = StyleSheet.create({
   changeUp: { color: theme.colors.danger },
   changeDown: { color: theme.colors.success },
   chartCard: { marginBottom: theme.spacing.lg, borderRadius: theme.radius.md, overflow: 'hidden' },
+  logForLabel: { fontSize: theme.fontSize.xs, color: theme.colors.textMuted, marginBottom: theme.spacing.sm },
   logRow: { flexDirection: 'row', gap: theme.spacing.sm, marginBottom: theme.spacing.md },
   weightInput: { flex: 1, height: 44, backgroundColor: theme.colors.background, borderRadius: theme.radius.md, paddingHorizontal: theme.spacing.md, color: theme.colors.text, fontSize: theme.fontSize.md, borderWidth: 1, borderColor: theme.colors.border },
   logBtn: { width: 60, height: 44, backgroundColor: theme.colors.accent, borderRadius: theme.radius.md, alignItems: 'center', justifyContent: 'center' },
