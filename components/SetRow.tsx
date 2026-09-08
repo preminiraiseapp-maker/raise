@@ -6,6 +6,7 @@ import type { WorkoutSetWithExercise } from '@/types/database'
 
 type Props = {
   set: WorkoutSetWithExercise & { tempReps?: string; tempWeight?: string; tempDuration?: string }
+  displayNumber: number
   onToggleComplete: () => void
   onChangeReps: (val: string) => void
   onChangeWeight: (val: string) => void
@@ -19,7 +20,7 @@ type Props = {
 const EFFORT_LABEL = { hard: 'H', max: 'M' } as const
 
 export default function SetRow({
-  set, onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCommitSet, onCycleEffort, onDelete, readonly,
+  set, displayNumber, onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCommitSet, onCycleEffort, onDelete, readonly,
 }: Props) {
   const isTime = set.exercise?.tracking_type === 'time'
   const reps = set.actual_reps ?? set.planned_reps
@@ -52,7 +53,7 @@ export default function SetRow({
         </Text>
       </TouchableOpacity>
 
-      <Text style={styles.setNum}>{set.set_number}</Text>
+      <Text style={styles.setNum}>{displayNumber}</Text>
 
       {isTime ? (
         <>
