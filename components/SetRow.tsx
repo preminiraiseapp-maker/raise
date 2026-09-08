@@ -10,6 +10,7 @@ type Props = {
   onChangeReps: (val: string) => void
   onChangeWeight: (val: string) => void
   onChangeDuration: (val: string) => void
+  onCommitSet: () => void
   onCycleEffort: () => void
   onDelete: () => void
   readonly?: boolean
@@ -18,7 +19,7 @@ type Props = {
 const EFFORT_LABEL = { hard: 'H', max: 'M' } as const
 
 export default function SetRow({
-  set, onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCycleEffort, onDelete, readonly,
+  set, onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCommitSet, onCycleEffort, onDelete, readonly,
 }: Props) {
   const isTime = set.exercise?.tracking_type === 'time'
   const reps = set.actual_reps ?? set.planned_reps
@@ -62,6 +63,7 @@ export default function SetRow({
               style={styles.input}
               value={set.tempDuration ?? String(duration ?? '')}
               onChangeText={onChangeDuration}
+              onBlur={onCommitSet}
               keyboardType="decimal-pad"
               placeholder="—"
               placeholderTextColor={theme.colors.textMuted}
@@ -80,6 +82,7 @@ export default function SetRow({
               style={styles.input}
               value={set.tempReps ?? String(reps ?? '')}
               onChangeText={onChangeReps}
+              onBlur={onCommitSet}
               keyboardType="number-pad"
               placeholder="—"
               placeholderTextColor={theme.colors.textMuted}
@@ -96,6 +99,7 @@ export default function SetRow({
               style={styles.input}
               value={set.tempWeight ?? String(weight ?? '')}
               onChangeText={onChangeWeight}
+              onBlur={onCommitSet}
               keyboardType="decimal-pad"
               placeholder="—"
               placeholderTextColor={theme.colors.textMuted}
