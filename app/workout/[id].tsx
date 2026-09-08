@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Modal, FlatList, Platform } from 'react-native'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -34,7 +34,21 @@ export default function WorkoutScreen() {
   const [reorderMode, setReorderMode] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  // Always-current mirror of localSets + the ids of sets with typed-but-unsaved
+  // values, so we can flush them to the DB when the screen loses focus.
+  const localSetsRef = useRef<SetState[]>([])
+  localSetsRef.current = localSets
+  const dirtySetIds = useRef<Set<string>>(new Set())
+
   useFocusEffect(useCallback(() => { refetch() }, [refetch]))
+
+  // Persist any typed-but-unsaved set values when leaving the screen, so a
+  // half-filled workout survives navigating away and back.
+  useFocusEffect(useCallback(() => {
+    return () => {
+      Array.from(dirtySetIds.current).forEach((setId) => { void commitSet(setId) })
+    }
+  }, []))
 
   // Sync server state → local state when session loads
   useFocusEffect(useCallback(() => {
@@ -79,9 +93,41 @@ export default function WorkoutScreen() {
     setLocalSets((prev) => prev.map((s) => s.id === setId ? { ...s, ...patch } : s))
   }
 
+  function editSetValue(setId: string, patch: Partial<SetState>) {
+    dirtySetIds.current.add(setId)
+    updateSet(setId, patch)
+  }
+
+  // Save a set's typed values to the DB. An uncompleted set writes its numbers
+  // to planned_* (so they pre-fill next time and you can just tick sets off at
+  // the gym); a completed set writes to actual_*.
+  async function commitSet(setId: string) {
+    const set = localSetsRef.current.find((s) => s.id === setId)
+    if (!set) return
+    dirtySetIds.current.delete(setId)
+
+    if (set.exercise?.tracking_type === 'time') {
+      const duration = parseFloat(set.tempDuration) || null
+      const patch = set.completed
+        ? { actual_duration_minutes: duration }
+        : { planned_duration_minutes: duration }
+      updateSet(setId, patch)
+      await supabase.from('workout_sets').update(patch).eq('id', setId)
+    } else {
+      const reps = parseInt(set.tempReps) || null
+      const weight = parseFloat(set.tempWeight) || null
+      const patch = set.completed
+        ? { actual_reps: reps, actual_weight: weight }
+        : { planned_reps: reps, planned_weight: weight }
+      updateSet(setId, patch)
+      await supabase.from('workout_sets').update(patch).eq('id', setId)
+    }
+  }
+
   async function toggleComplete(setId: string) {
     const set = localSets.find((s) => s.id === setId)
     if (!set) return
+    dirtySetIds.current.delete(setId)
     const newCompleted = !set.completed
     const isTime = set.exercise?.tracking_type === 'time'
 
@@ -247,6 +293,7 @@ export default function WorkoutScreen() {
 
   async function doComplete() {
     setSaving(true)
+    dirtySetIds.current.clear()
     await Promise.all(
       localSets.map((s) =>
         supabase.from('workout_sets').update(
@@ -366,9 +413,10 @@ export default function WorkoutScreen() {
               onMoveUp={() => moveExercise(exerciseId, -1)}
               onMoveDown={() => moveExercise(exerciseId, 1)}
               onToggleComplete={toggleComplete}
-              onChangeReps={(setId, val) => updateSet(setId, { tempReps: val })}
-              onChangeWeight={(setId, val) => updateSet(setId, { tempWeight: val })}
-              onChangeDuration={(setId, val) => updateSet(setId, { tempDuration: val })}
+              onChangeReps={(setId, val) => editSetValue(setId, { tempReps: val })}
+              onChangeWeight={(setId, val) => editSetValue(setId, { tempWeight: val })}
+              onChangeDuration={(setId, val) => editSetValue(setId, { tempDuration: val })}
+              onCommitSet={commitSet}
               onCycleEffort={cycleEffort}
               onSaveMachineSettings={(value) => saveMachineSettings(exerciseId, value)}
               onAddSet={() => addSet(exerciseId)}

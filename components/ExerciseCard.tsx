@@ -14,6 +14,7 @@ type Props = {
   onChangeReps: (setId: string, val: string) => void
   onChangeWeight: (setId: string, val: string) => void
   onChangeDuration: (setId: string, val: string) => void
+  onCommitSet: (setId: string) => void
   onCycleEffort: (setId: string) => void
   onSaveMachineSettings: (value: string | null) => void
   onAddSet: () => void
@@ -29,7 +30,7 @@ type Props = {
 
 export default function ExerciseCard({
   exerciseName, muscleGroup, machineSettings, sets,
-  onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCycleEffort, onSaveMachineSettings, onAddSet, onDeleteSet, onDeleteExercise,
+  onToggleComplete, onChangeReps, onChangeWeight, onChangeDuration, onCommitSet, onCycleEffort, onSaveMachineSettings, onAddSet, onDeleteSet, onDeleteExercise,
   readonly,
   reorderMode, canMoveUp, canMoveDown, onMoveUp, onMoveDown,
 }: Props) {
@@ -113,6 +114,7 @@ export default function ExerciseCard({
               onChangeReps={(v) => onChangeReps(set.id, v)}
               onChangeWeight={(v) => onChangeWeight(set.id, v)}
               onChangeDuration={(v) => onChangeDuration(set.id, v)}
+              onCommitSet={() => onCommitSet(set.id)}
               onCycleEffort={() => onCycleEffort(set.id)}
               onDelete={() => onDeleteSet(set.id)}
               readonly={readonly}
