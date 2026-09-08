@@ -74,13 +74,16 @@ export default function WorkoutScreen() {
 
   const isCompleted = session.status === 'completed'
 
-  // Group sets by exercise
+  // Group sets by exercise, ordered by set_number within each exercise
   const exerciseGroups = localSets.reduce<Record<string, SetState[]>>((acc, s) => {
     const key = s.exercise_id
     if (!acc[key]) acc[key] = []
     acc[key].push(s)
     return acc
   }, {})
+  for (const key of Object.keys(exerciseGroups)) {
+    exerciseGroups[key].sort((a, b) => (a.set_number ?? 0) - (b.set_number ?? 0))
+  }
 
   const sortedExerciseIds = [...new Set(localSets.map((s) => s.exercise_id))]
     .sort((a, b) => {
@@ -153,9 +156,11 @@ export default function WorkoutScreen() {
   }
 
   async function addSet(exerciseId: string) {
-    const exerciseSets = localSets.filter((s) => s.exercise_id === exerciseId)
+    const exerciseSets = localSets
+      .filter((s) => s.exercise_id === exerciseId)
+      .sort((a, b) => (a.set_number ?? 0) - (b.set_number ?? 0))
     const lastSet = exerciseSets[exerciseSets.length - 1]
-    const setNumber = exerciseSets.length + 1
+    const setNumber = Math.max(0, ...exerciseSets.map((s) => s.set_number ?? 0)) + 1
     const exerciseOrder = lastSet?.exercise_order ?? sortedExerciseIds.indexOf(exerciseId)
     const isTime = exercises.find((e) => e.id === exerciseId)?.tracking_type === 'time'
 

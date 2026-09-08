@@ -35,6 +35,8 @@ export function useSession(sessionId: string) {
       .from('workout_sessions')
       .select('*, workout_sets(*, exercise:exercises(*))')
       .eq('id', sessionId)
+      .order('exercise_order', { referencedTable: 'workout_sets' })
+      .order('set_number', { referencedTable: 'workout_sets' })
       .single()
     if (error) console.error('useSession:', error.message)
     setSession(data as WorkoutSessionWithSets | null)

@@ -106,10 +106,11 @@ export default function ExerciseCard({
             <Text style={[styles.colLabel, { width: 32 }]}> </Text>
           </View>
 
-          {sets.map((set) => (
+          {sets.map((set, i) => (
             <SetRow
               key={set.id}
               set={set}
+              displayNumber={i + 1}
               onToggleComplete={() => onToggleComplete(set.id)}
               onChangeReps={(v) => onChangeReps(set.id, v)}
               onChangeWeight={(v) => onChangeWeight(set.id, v)}
